@@ -1,4 +1,5 @@
 ﻿using System.Data.SqlClient;
+using System.Text;
 
 namespace MelisWeb.Common.DataBase;
 
@@ -26,7 +27,7 @@ public class DataBaseHelper
             {
                 command.CommandText = @"
 SELECT 
-	t.name
+	DB_NAME(), OBJECT_SCHEMA_NAME(t.object_id), t.name
 FROM
 	sys.tables t
 WHERE
@@ -40,8 +41,10 @@ ORDER BY
                     {
                         tables.Add(new Table
                         {
-                            Name = reader.GetString(0),
-                            Columns = GetTableColumns(reader.GetString(0))
+                            DatabaseName = reader.GetString(0),
+                            Schema = reader.GetString(1),
+                            Name = reader.GetString(2),
+                            Columns = GetTableColumns(reader.GetString(2))
                         });
                     }
                 }
@@ -111,45 +114,128 @@ SELECT
         return columns;
     }
 
-    public string GetDeleteScript(Table table)
+    public string GetDeleteScript(Table table, string indentation = "")
     {
-        var where = string.Join("\n  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
-        return $@"DELETE FROM {table.Name} 
-WHERE {where}";
+        var where = string.Join($"\n{indentation}  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
+        return $@"{indentation}DELETE FROM {table.Name} 
+{indentation}WHERE {where}";
     }
 
-    public string GetInsertScript(Table table)
+    public string GetInsertScript(Table table, string indentation = "")
     {
         var columns = string.Join(", ", table.WritableColumns.Select(c => c.Name));
         var values = string.Join(", ", table.WritableColumns.Select(c => $"@{c.Name}"));
-        return $@"INSERT INTO {table.Name} 
-    ({columns}) 
-VALUES 
-    ({values})";
+        return $@"{indentation}INSERT INTO {table.Name} 
+{indentation}    ({columns}) 
+{indentation}VALUES 
+{indentation}    ({values})";
     }
 
-    public string GetUpdateScript(Table table)
+    public string GetUpdateScript(Table table, string indentation = "")
     {
+        var set = string.Join($",\n{indentation}      ", table.UpdatableColumns.Select(c => $"{c.Name} = @{c.Name}"));
+        var where = string.Join($"\n{indentation}  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
+        return $@"{indentation}UPDATE {table.Schema}.{table.Name} 
+{indentation}  SET {set} 
+{indentation}WHERE {where}";
+    }
+
+    public string GetAllScript(Table table, string indentation = "")
+    {
+        var columns = string.Join(",\n{indentation}   ", table.Columns.Select(c => c.Name));
+        return $@"{indentation}SELECT {columns} 
+{indentation}FROM {table.Name}";
+    }
+
+    public string GetByKeyScript(Table table, string indentation = "")
+    {
+        var where = string.Join($"\n{indentation}  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
+        var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => c.Name));
+        return $@"{indentation}SELECT {columns}
+{indentation}FROM {table.Name}
+{indentation}WHERE {where}";
+    }
+
+    public string GetGetByKeyStoredProcedureScript(Table table)
+    {
+        var script = new StringBuilder();
+        var where = string.Join(" AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
+        var procedureName = $"{table.Schema}.ERP_{table.Name}_GET_BY_KEYS";
+        NewMethod(script, table.DatabaseName, procedureName);
+        script.AppendLine($"ALTER PROCEDURE {procedureName}");
+        script.AppendLine("\t" + string.Join(",\n\t", table.PrimaryKeyColumns.Select(c => $"@{c.Name} {c.GetDataType()}")));
+        script.AppendLine("AS");
+        script.AppendLine("BEGIN");
+        script.AppendLine(GetByKeyScript(table, "\t"));
+        script.AppendLine("END");
+        return script.ToString();
+    }
+
+    public string GetDeleteStoredProcedureScript(Table table)
+    {
+        var script = new StringBuilder();
+        var where = string.Join(" AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
+        var procedureName = $"{table.Schema}.ERP_{table.Name}_DELETE";
+        NewMethod(script, table.DatabaseName, procedureName);
+        script.AppendLine($"ALTER PROCEDURE {procedureName}");
+        script.AppendLine("\t" + string.Join(",\n\t", table.PrimaryKeyColumns.Select(c => $"@{c.Name} {c.GetDataType()}")));
+        script.AppendLine("AS");
+        script.AppendLine("BEGIN");
+        script.AppendLine(GetDeleteScript(table, "\t"));
+        script.AppendLine("END");
+        return script.ToString();
+    }
+
+    public string GetSaveStoredProcedureScript(Table table)
+    {
+        var script = new StringBuilder();
+        var columns = string.Join(", ", table.WritableColumns.Select(c => c.Name));
+        var values = string.Join(", ", table.WritableColumns.Select(c => $"@{c.Name}"));
         var set = string.Join(",\n      ", table.UpdatableColumns.Select(c => $"{c.Name} = @{c.Name}"));
-        var where = string.Join("\n  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
-        return $@"UPDATE {table.Name} 
-  SET {set} 
-WHERE {where}";
+        var where = string.Join(" AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
+
+        var procedureName = $"{table.Schema}.ERP_{table.Name}_SAVE";
+        NewMethod(script, table.DatabaseName, procedureName);
+        script.AppendLine($"ALTER PROCEDURE {procedureName}");
+        script.AppendLine("\t" + string.Join(",\n\t", table.Columns.Where(c => !c.IsIdentity || c.IsPrimaryKey).Select(c => $"@{c.Name} {c.GetDataType()}")));
+
+        script.AppendLine("AS");
+        script.AppendLine("BEGIN");
+
+        script.AppendLine($"\tIF EXISTS (SELECT 1 FROM {table.Schema}.{table.Name} WHERE {where})");
+        script.AppendLine("\tBEGIN");
+        script.AppendLine(GetUpdateScript(table, "\t\t"));
+        script.AppendLine("\tEND");
+        script.AppendLine("\tELSE");
+        script.AppendLine("\tBEGIN");
+        script.AppendLine(GetInsertScript(table, "\t\t"));
+        script.AppendLine("\tEND");
+        script.AppendLine("END");
+
+        return script.ToString();
     }
 
-    public string GetAllScript(Table table)
+    private static void NewMethod(StringBuilder script, string databaseName, string procedureName)
     {
-        var columns = string.Join(",\n   ", table.Columns.Select(c => c.Name));
-        return $@"SELECT {columns} 
-FROM {table.Name}";
-    }
-
-    public string GetByIdScript(Table table)
-    {
-        var where = string.Join("\n  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
-        var columns = string.Join(",\n   ", table.Columns.Select(c => c.Name));
-        return $@"SELECT {columns}
-FROM {table.Name}
-WHERE {where}";
+        script.AppendLine($"USE {databaseName}");
+        script.AppendLine("GO");
+        script.AppendLine();
+        script.AppendLine($"IF OBJECT_ID  ('{procedureName}', 'P') IS NOT NULL");
+        script.AppendLine("\tSET NOEXEC ON;");
+        script.AppendLine("GO");
+        script.AppendLine();
+        script.AppendLine($"PRINT 'First creation of {procedureName} procedure';");
+        script.AppendLine("GO");
+        script.AppendLine();
+        script.AppendLine($"CREATE PROCEDURE {procedureName}");
+        script.AppendLine("AS");
+        script.AppendLine("BEGIN");
+        script.AppendLine($"\tPRINT 'Fake body of {procedureName} procedure'");
+        script.AppendLine("END");
+        script.AppendLine("GO");
+        script.AppendLine();
+        script.AppendLine("SET NOEXEC OFF;");
+        script.AppendLine("GO");
+        script.AppendLine();
     }
 }

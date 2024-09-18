@@ -8,6 +8,8 @@ namespace MelisWeb.Common.DataBase;
 
 public class Table
 {
+    public string DatabaseName { get; set; }
+    public string Schema { get; set; }
     public string Name { get; set; }
     public List<Column> Columns { get; set; }
 

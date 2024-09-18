@@ -17,4 +17,24 @@ public class Column
     public bool IsPrimaryKey { get; set; }
     public int Index { get; set; }
     public bool IsIdentity { get; set; }
+
+    public string GetDataType()
+    {
+        if (Type == "varchar" || Type == "char")
+        {
+            return $"{Type}({MaxLength})";
+        }
+        else if (Type == "nvarchar" || Type == "nchar")
+        {
+            return $"{Type}({MaxLength / 2})";
+        }
+        else if (Type == "decimal" || Type == "numeric")
+        {
+            return $"{Type}({Precision},{Scale})";
+        }
+        else
+        {
+            return Type;
+        }
+    }
 }

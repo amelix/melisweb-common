@@ -32,9 +32,42 @@ public class Column
         {
             return $"{Type}({Precision},{Scale})";
         }
-        else
+
+        return Type;
+    }
+
+    public string GetCodeDataType()
+    {
+        var nullable = "";
+        if (IsNullable)
         {
-            return Type;
+            nullable = "?";
         }
+        if (Type == "varchar" || Type == "char")
+        {
+            return "string" + nullable;
+        }
+        else if (Type == "nvarchar" || Type == "nchar")
+        {
+            return "string" + nullable;
+        }
+        else if (Type == "decimal" || Type == "numeric")
+        {
+            return "decimal" + nullable;
+        }
+        else if (Type == "bigint")
+        {
+            return "long" + nullable;
+        }
+        else if (Type == "bit")
+        {
+            return "bool" + nullable;
+        }
+        else if (Type == "datetime")
+        {
+            return "DateTime" + nullable;
+        }
+
+        return Type + nullable;
     }
 }

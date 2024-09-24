@@ -52,10 +52,10 @@ public static class ExtensionsCode
         result.Append(table.GetProperties(Indentation + Indentation));
         result.AppendLine($"{Indentation + Indentation}#region CRUD commands");
         result.AppendLine();
-        result.AppendLine($"{Indentation + Indentation}public string SaveCommandName => \"{table.GetSaveCommandName()}\";");
-        result.AppendLine($"{Indentation + Indentation}public string DeleteCommandName => \"{table.GetDeleteCommandName()}\";");
-        result.AppendLine($"{Indentation + Indentation}public string GetByKeyCommandName => \"{table.GetByKeyCommandName()}\";");
-        result.AppendLine($"{Indentation + Indentation}public string GetAllCommandName => \"{table.GetGetAllCommandName ()}\";");
+        result.AppendLine($"{Indentation + Indentation}public static string SaveCommandName => \"{table.GetSaveCommandName()}\";");
+        result.AppendLine($"{Indentation + Indentation}public static string DeleteCommandName => \"{table.GetDeleteCommandName()}\";");
+        result.AppendLine($"{Indentation + Indentation}public static string GetByKeyCommandName => \"{table.GetByKeyCommandName()}\";");
+        result.AppendLine($"{Indentation + Indentation}public static string GetAllCommandName => \"{table.GetGetAllCommandName ()}\";");
         result.AppendLine();
         result.AppendLine($"{Indentation + Indentation}#endregion");
         result.AppendLine();
@@ -96,6 +96,12 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation}public partial class {className}");
         }
         result.AppendLine($"{Indentation}{{");
+        // Genera il metodo GetAll
+        var parameters = table.PrimaryKeyColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+        result.AppendLine($"{Indentation + Indentation}public async Task<IEnumerable<Model.{table.Name.ToPascalCase().ToSingular()}>> GetAll({string.Join(", ", parameters)})");
+        result.AppendLine($"{Indentation}{{");
+
+        result.AppendLine($"{Indentation + Indentation}}}");
 
         result.AppendLine($"{Indentation}}}");
         result.AppendLine("}");

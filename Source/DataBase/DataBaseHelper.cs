@@ -17,22 +17,33 @@ public class DataBaseHelper
     /// Get the tables of a database
     /// </summary>
     /// <returns></returns>
-    public List<Table> GetTables()
+    public List<Table> GetTables(List<string> requiredTables = null,
+        List<string> tablesToIgnore = null)
     {
         var tables = new List<Table>();
+        var where = "";
+        if (requiredTables != null)
+        {
+            where += $"\n\tAND t.name IN ('{string.Join("','", requiredTables)}')";            
+        }
+        if (tablesToIgnore == null)
+        {
+            tablesToIgnore = new List<string>();
+        }
+        tablesToIgnore.Add("sysdiagrams");
+        where += $"\n\tAND t.name NOT IN ('{string.Join("','", tablesToIgnore)}')";
         using (var connection = new SqlConnection(_connectionString))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = @"
+                command.CommandText = @$"
 SELECT 
 	DB_NAME(), OBJECT_SCHEMA_NAME(t.object_id), t.name
 FROM
 	sys.tables t
 WHERE
-	t.type = 'U'
-	AND t.name NOT IN ('sysdiagrams')
+	t.type = 'U'{where}
 ORDER BY
 	t.name";
                 using (var reader = command.ExecuteReader())
@@ -114,5 +125,5 @@ SELECT
         return columns;
     }
 
-    
+
 }

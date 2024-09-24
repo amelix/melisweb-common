@@ -8,6 +8,11 @@ public static class ExtensionsDataBase
 
     #region Table Extensions
 
+    public static string GetSaveCommandName(this Table table)
+    {
+        return table.GetCommandName("save");
+    }
+
     public static string GetSaveStoredProcedureScript(this Table table)
     {
         if (table == null) return string.Empty;
@@ -18,7 +23,7 @@ public static class ExtensionsDataBase
         var set = string.Join(",\n      ", table.UpdatableColumns.Select(c => $"{c.Name} = @{c.Name}"));
         var where = string.Join(" AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
 
-        var procedureName = $"{table.Schema}.ERP_{table.Name}_SAVE";
+        var procedureName = table.GetSaveCommandName();
         GetStoredProcedureHeader(script, table.DatabaseName, procedureName);
         script.AppendLine($"ALTER PROCEDURE {procedureName}");
         script.AppendLine(Indentation + string.Join($",\n{Indentation}", table.Columns.Where(c => !c.IsIdentity || c.IsPrimaryKey).Select(c => $"@{c.Name} {c.GetDataType()}")));
@@ -39,13 +44,18 @@ public static class ExtensionsDataBase
         return script.ToString();
     }
 
+    public static string GetDeleteCommandName(this Table table)
+    {
+        return table.GetCommandName("delete");
+    }
+
     public static string GetDeleteStoredProcedureScript(this Table table)
     {
         if (table == null) return string.Empty;
 
         var script = new StringBuilder();
         var where = string.Join(" AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
-        var procedureName = $"{table.Schema}.ERP_{table.Name}_DELETE";
+        var procedureName = table.GetDeleteCommandName();
         GetStoredProcedureHeader(script, table.DatabaseName, procedureName);
         script.AppendLine($"ALTER PROCEDURE {procedureName}");
         script.AppendLine(Indentation + string.Join($",\n{Indentation}", table.PrimaryKeyColumns.Select(c => $"@{c.Name} {c.GetDataType()}")));
@@ -56,13 +66,18 @@ public static class ExtensionsDataBase
         return script.ToString();
     }
 
+    public static string GetByKeyCommandName(this Table table)
+    {
+        return table.GetCommandName("get_by_keys");
+    }
+
     public static string GetGetByKeyStoredProcedureScript(this Table table)
     {
         if (table == null) return string.Empty;
 
         var script = new StringBuilder();
         var where = string.Join(" AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
-        var procedureName = $"{table.Schema}.ERP_{table.Name}_GET_BY_KEYS";
+        var procedureName = table.GetByKeyCommandName();
         GetStoredProcedureHeader(script, table.DatabaseName, procedureName);
         script.AppendLine($"ALTER PROCEDURE {procedureName}");
         script.AppendLine(Indentation + string.Join($",\n{Indentation}", table.PrimaryKeyColumns.Select(c => $"@{c.Name} {c.GetDataType()}")));
@@ -73,12 +88,17 @@ public static class ExtensionsDataBase
         return script.ToString();
     }
 
+    public static string GetGetAllCommandName(this Table table)
+    {
+        return table.GetCommandName("get_all");
+    }
+
     public static string GetGetAllStoredProcedureScript(this Table table, Column[]? requiredColumns = null)
     {
         if (table == null) return string.Empty;
 
         var script = new StringBuilder();
-        var procedureName = $"{table.Schema}.ERP_{table.Name}_GET_ALL";
+        var procedureName = table.GetGetAllCommandName();
         GetStoredProcedureHeader(script, table.DatabaseName, procedureName);
         script.AppendLine($"ALTER PROCEDURE {procedureName}");
         if (requiredColumns != null)
@@ -172,6 +192,11 @@ public static class ExtensionsDataBase
         script.AppendLine("SET NOEXEC OFF;");
         script.AppendLine("GO");
         script.AppendLine();
+    }
+
+    private static string GetCommandName(this Table table, string action)
+    {
+        return $"{table.Schema}.ERP_{table.Name}_{action.ToUpper()}";
     }
 
     #endregion

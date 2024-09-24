@@ -4,7 +4,15 @@ namespace MelisWeb.Common.DataBase;
 
 public static class ExtensionsDataBase
 {
-    public static string Indentation = "\t";
+
+    public static string Indentation = "    ";
+    private static string Indentation2 = Indentation + Indentation;
+    private static string Indentation3 = Indentation2 + Indentation;
+    private static string Indentation4 = Indentation3 + Indentation;
+    private static string Indentation5 = Indentation4 + Indentation;
+    private static string Indentation6 = Indentation5 + Indentation;
+    private static string Indentation7 = Indentation6 + Indentation;
+    private static string Indentation8 = Indentation7 + Indentation;
 
     #region Table Extensions
 
@@ -147,9 +155,9 @@ public static class ExtensionsDataBase
     {
         if (table == null) return string.Empty;
 
-        var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => c.Name));
+        var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => $"{c.Name} [{c.Name.ToPascalCase()}]"));
         var where = "";
-        if (requiredColumns != null)
+        if (requiredColumns != null && requiredColumns.Length > 0)
         {
             where = $"\n{indentation}WHERE ";
             where += string.Join($"\n{indentation}  AND ", requiredColumns.Select(c => $"{c.Name} = @{c.Name}"));
@@ -164,7 +172,7 @@ public static class ExtensionsDataBase
         if (table == null) return string.Empty;
 
         var where = string.Join($"\n{indentation}  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
-        var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => c.Name));
+        var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => $"{c.Name} [{c.Name.ToPascalCase()}]"));
         return $@"{indentation}SELECT {columns}
 {indentation}FROM {table.Name}
 {indentation}WHERE {where}";

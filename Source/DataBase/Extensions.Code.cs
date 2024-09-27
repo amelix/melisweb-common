@@ -510,58 +510,52 @@ public static class ExtensionsCode
         result.AppendLine($"</div>");
         result.AppendLine();
         result.AppendLine($"<form method=\"post\"");
-        //      asp-action="SaveData" 
-        //      asp-controller="Workorders"
-        //      data-ajax="true" 
-        //      data-ajax-method="POST"
-        //      data-ajax-begin="OnBegin"
-        //      data-ajax-failure="OnFailure"
-        //      data-ajax-success="OnSuccess"
-        //      data-ajax-complete="OnComplete"
-        //      class="needs-validation" 
-        result.AppendLine($"{Indentation}novalidate>");
+        result.AppendLine($"{Indentation} asp-action=\"SaveData\"");
+        result.AppendLine($"{Indentation} asp-controller=\"Workorders\"");
+        result.AppendLine($"{Indentation} data-ajax=\"true\"");
+        result.AppendLine($"{Indentation} data-ajax-method=\"POST\"");
+        result.AppendLine($"{Indentation} data-ajax-begin=\"OnBegin\"");
+        result.AppendLine($"{Indentation} data-ajax-failure=\"OnFailure\"");
+        result.AppendLine($"{Indentation} data-ajax-success=\"OnSuccess\"");
+        result.AppendLine($"{Indentation} data-ajax-complete=\"OnComplete\"");
+        result.AppendLine($"{Indentation} class=\"needs-validation\"");
+        result.AppendLine($"{Indentation} novalidate>");
+        var requiredColumns = table.Columns.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
+        foreach (var column in requiredColumns)
+        {
+            result.AppendLine($"{Indentation}@Html.HiddenFor(model => model.{column.Name.ToPascalCase()})");
+        }
+        foreach (var column in table.WritableColumns)
+        {
+            result.AppendLine($"{Indentation}<div class=\"form-group\" id=\"form{column.Name.ToPascalCase()}\">");
+            result.AppendLine($"{Indentation2}<label for=\"{column.Name.ToPascalCase()}\">{column.Name.ToPascalCase()}</label>");
+            if (column.IsNullable)
+            {
+                result.AppendLine($"{Indentation2}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Name.ToPascalCase()}\" }} }})");
+            }
+            else
+            {
+                result.AppendLine($"{Indentation2}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Name.ToPascalCase()}\", required = \"required\" }} }})");
+                result.AppendLine($"{Indentation2}<div class=\"invalid-feedback\">");
+                result.AppendLine($"{Indentation3}Please enter {column.Name.ToPascalCase()}");
+                result.AppendLine($"{Indentation2}</div>");
+            }
+            result.AppendLine($"{Indentation}</div>");
+        }
         //    @Html.HiddenFor(model => model.WorRecid)
         //    @Html.HiddenFor(model => model.WorCompany)
         //    @Html.HiddenFor(model => model.WorErpCode)
         result.AppendLine($"{Indentation}<div class=\"modal-body\">");
-        //        <div class="form-group" id="formWorWorkorder">
-        //            <label for="WorWorkorder">Workorder</label>
-        //            @Html.EditorFor(model => model.WorWorkorder, new { htmlAttributes = new { @class = "form-control", placeholder = "Workorder", required = "required" } })
-        //            <div class="invalid-feedback">
+        //        <div class=\"form-group\" id=\"formWorWorkorder\">
+        //            <label for=\"WorWorkorder\">Workorder</label>
+        //            @Html.EditorFor(model => model.WorWorkorder, new { htmlAttributes = new { @class = \"form-control\", placeholder = \"Workorder\", required = \"required\" } })
+        //            <div class=\"invalid-feedback\">
         //                Please enter Workorder
         //            </div>
         //        </div>
-        //        <div class="form-group" id="formWorItem">
-        //            <label for="WorItem">Item</label>
-        //            @Html.EditorFor(model => model.WorItem, new { htmlAttributes = new { @class = "form-control", placeholder = "Item" } })
-        //        </div>
-        //        <div class="form-group" id="formWorRemainQty">
-        //            <label for="WorRemainQty">Remaining Quantity</label>
-        //            @Html.EditorFor(model => model.WorRemainQty, new { htmlAttributes = new { @class = "form-control", placeholder = "Remaining Quantity", required = "required" } })
-        //            <div class="invalid-feedback">
-        //                Please enter Remaining Quantity
-        //            </div>
-        //        </div>
-        //        <div class="form-group" id="formWorSchedQty">
-        //            <label for="WorSchedQty">Sched Quantity</label>
-        //            @Html.EditorFor(model => model.WorSchedQty, new { htmlAttributes = new { @class = "form-control", placeholder = "Sched Quantity", required = "required" } })
-        //            <div class="invalid-feedback">
-        //                Please enter Sched Quantity
-        //            </div>
-        //        </div>
-        //        <div class="form-group" id="formWorStandQty">
-        //            <label for="WorStandQty">Stand Quantity</label>
-        //            @Html.EditorFor(model => model.WorStandQty, new { htmlAttributes = new { @class = "form-control", placeholder = "Stand Quantity", required = "required" } })
-        //            <div class="invalid-feedback">
-        //                Please enter Stand Quantity
-        //            </div>
-        //        </div>
-        //        <div class="form-group" id="formWorStatus">
-        //            <label for="WorStatus">Status</label>
-        //            @Html.EditorFor(model => model.WorStatus, new { htmlAttributes = new { @class = "form-control", placeholder = "Status", required = "required"} })
-        //            <div class="invalid-feedback">
-        //                Please enter Status 
-        //            </div>
+        //        <div class=\"form-group\" id=\"formWorItem\">
+        //            <label for=\"WorItem\">Item</label>
+        //            @Html.EditorFor(model => model.WorItem, new { htmlAttributes = new { @class = \"form-control\", placeholder = \"Item\" } })
         //        </div>
         result.AppendLine($"{Indentation}</div>");
         result.AppendLine($"{Indentation}<div class=\"modal-footer\">");

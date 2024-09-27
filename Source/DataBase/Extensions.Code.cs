@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System.Text;
 
 namespace MelisWeb.Common.DataBase;
 
@@ -459,6 +451,147 @@ public static class ExtensionsCode
         result.AppendLine($"{Indentation2}#endregion");
         result.AppendLine($"{Indentation}}}");
         result.AppendLine("}");
+
+        return result.ToString();
+    }
+
+    public static string GetPartialViewClass(this Table table,
+        string classNamespace,
+        string? className = null,
+        string? classNameRepository = null,
+        string? classNameProvider = null,
+        string? classNameController = null,
+        string? inheritedClass = null,
+        IEnumerable<string>? usingList = null)
+    {
+        var result = new StringBuilder();
+        var modelName = table.Name.ToPascalCase().ToSingular();
+        if (className == null)
+        {
+            className = table.Name.ToPascalCase().ToSingular();
+        }
+        if (classNameRepository == null)
+        {
+            classNameRepository = $"{className}Repository";
+        }
+        if (classNameProvider == null)
+        {
+            classNameProvider = $"{className}Provider";
+        }
+        if (classNameController == null)
+        {
+            classNameController = $"{className}Controller";
+        }
+        if (usingList != null)
+        {
+            foreach (var item in usingList)
+            {
+                result.AppendLine($"@using {item}");
+            }
+        }
+        result.AppendLine();
+        result.AppendLine($"@model Model.{modelName}");
+        result.AppendLine();
+        result.AppendLine($"<div class=\"modal-header\">");
+        result.AppendLine($"{Indentation}@if (Model == null)");
+        result.AppendLine($"{Indentation}{{");
+
+        result.AppendLine($"{Indentation2}<h4 class=\"modal-title\">");
+        result.AppendLine($"{Indentation3}Add {modelName}");
+        result.AppendLine($"{Indentation2}</h4>");
+        result.AppendLine($"{Indentation}}}");
+        result.AppendLine($"{Indentation}else");
+        result.AppendLine($"{Indentation}{{");
+
+        result.AppendLine($"{Indentation2}<h4 class=\"modal-title\">");
+        result.AppendLine($"{Indentation3}Edit {modelName}");
+        result.AppendLine($"{Indentation2}</h4>");
+        result.AppendLine($"{Indentation}}}");
+        result.AppendLine($"</div>");
+        result.AppendLine();
+        result.AppendLine($"<form method=\"post\"");
+        //      asp-action="SaveData" 
+        //      asp-controller="Workorders"
+        //      data-ajax="true" 
+        //      data-ajax-method="POST"
+        //      data-ajax-begin="OnBegin"
+        //      data-ajax-failure="OnFailure"
+        //      data-ajax-success="OnSuccess"
+        //      data-ajax-complete="OnComplete"
+        //      class="needs-validation" 
+        result.AppendLine($"{Indentation}novalidate>");
+        //    @Html.HiddenFor(model => model.WorRecid)
+        //    @Html.HiddenFor(model => model.WorCompany)
+        //    @Html.HiddenFor(model => model.WorErpCode)
+        result.AppendLine($"{Indentation}<div class=\"modal-body\">");
+        //        <div class="form-group" id="formWorWorkorder">
+        //            <label for="WorWorkorder">Workorder</label>
+        //            @Html.EditorFor(model => model.WorWorkorder, new { htmlAttributes = new { @class = "form-control", placeholder = "Workorder", required = "required" } })
+        //            <div class="invalid-feedback">
+        //                Please enter Workorder
+        //            </div>
+        //        </div>
+        //        <div class="form-group" id="formWorItem">
+        //            <label for="WorItem">Item</label>
+        //            @Html.EditorFor(model => model.WorItem, new { htmlAttributes = new { @class = "form-control", placeholder = "Item" } })
+        //        </div>
+        //        <div class="form-group" id="formWorRemainQty">
+        //            <label for="WorRemainQty">Remaining Quantity</label>
+        //            @Html.EditorFor(model => model.WorRemainQty, new { htmlAttributes = new { @class = "form-control", placeholder = "Remaining Quantity", required = "required" } })
+        //            <div class="invalid-feedback">
+        //                Please enter Remaining Quantity
+        //            </div>
+        //        </div>
+        //        <div class="form-group" id="formWorSchedQty">
+        //            <label for="WorSchedQty">Sched Quantity</label>
+        //            @Html.EditorFor(model => model.WorSchedQty, new { htmlAttributes = new { @class = "form-control", placeholder = "Sched Quantity", required = "required" } })
+        //            <div class="invalid-feedback">
+        //                Please enter Sched Quantity
+        //            </div>
+        //        </div>
+        //        <div class="form-group" id="formWorStandQty">
+        //            <label for="WorStandQty">Stand Quantity</label>
+        //            @Html.EditorFor(model => model.WorStandQty, new { htmlAttributes = new { @class = "form-control", placeholder = "Stand Quantity", required = "required" } })
+        //            <div class="invalid-feedback">
+        //                Please enter Stand Quantity
+        //            </div>
+        //        </div>
+        //        <div class="form-group" id="formWorStatus">
+        //            <label for="WorStatus">Status</label>
+        //            @Html.EditorFor(model => model.WorStatus, new { htmlAttributes = new { @class = "form-control", placeholder = "Status", required = "required"} })
+        //            <div class="invalid-feedback">
+        //                Please enter Status 
+        //            </div>
+        //        </div>
+        result.AppendLine($"{Indentation}</div>");
+        result.AppendLine($"{Indentation}<div class=\"modal-footer\">");
+        result.AppendLine($"{Indentation2}<button type=\"submit\" class=\"btn btn-primary\" data-save=\"modal\">Save</button>");
+        result.AppendLine($"{Indentation2}<button type=\"button\" class=\"btn btn-secondary\" data-dismiss=\"modal\">Cancel</button>");
+        result.AppendLine($"{Indentation}</div>");
+        result.AppendLine($"</form>");
+
+        result.AppendLine($"<script>");
+        result.AppendLine($"{Indentation}\"use strict\";");
+        result.AppendLine();
+        result.AppendLine($"{Indentation}(function() {{");
+        result.AppendLine($"{Indentation2}var forms = document.querySelectorAll('.needs-validation');");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}// Loop over them and prevent submission");
+        result.AppendLine($"{Indentation2}Array.prototype.slice.call(forms)");
+        result.AppendLine($"{Indentation3}.forEach(function(form) {{");
+        result.AppendLine($"{Indentation4}form.addEventListener('submit',");
+        result.AppendLine($"{Indentation5}function(event) {{");
+        result.AppendLine($"{Indentation6}if (!form.checkValidity()) {{");
+        result.AppendLine($"{Indentation7}event.preventDefault();");
+        result.AppendLine($"{Indentation7}event.stopPropagation();");
+        result.AppendLine($"{Indentation6}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation6}form.classList.add('was-validated');");
+        result.AppendLine($"{Indentation5}}},");
+        result.AppendLine($"{Indentation5}false);");
+        result.AppendLine($"{Indentation3}}});");
+        result.AppendLine($"{Indentation}}})();");
+        result.AppendLine($"</script>");
 
         return result.ToString();
     }

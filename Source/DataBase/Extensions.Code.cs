@@ -455,6 +455,256 @@ public static class ExtensionsCode
         return result.ToString();
     }
 
+    public static string GetViewClass(this Table table,
+        string classNamespace,
+        string? className = null,
+        string? classNameRepository = null,
+        string? classNameProvider = null,
+        string? classNameController = null,
+        string? inheritedClass = null,
+        IEnumerable<string>? usingList = null)
+    {
+        var result = new StringBuilder();
+        var modelName = table.Name.ToPascalCase().ToSingular();
+        if (className == null)
+        {
+            className = table.Name.ToPascalCase().ToSingular();
+        }
+        if (classNameRepository == null)
+        {
+            classNameRepository = $"{className}Repository";
+        }
+        if (classNameProvider == null)
+        {
+            classNameProvider = $"{className}Provider";
+        }
+        if (classNameController == null)
+        {
+            classNameController = $"{className}Controller";
+        }
+        if (usingList != null)
+        {
+            foreach (var item in usingList)
+            {
+                result.AppendLine($"@using {item}");
+            }
+        }
+        result.AppendLine();
+        result.AppendLine($"@model Model.{modelName}");
+        result.AppendLine();
+        result.AppendLine($"@{{");
+        result.AppendLine($"{Indentation}ViewData[\"Title\"] = \"{table.Name.ToPascalCase()}\";");
+        result.AppendLine($"}}");
+        result.AppendLine($"<div class=\"row\">");
+        result.AppendLine($"{Indentation}<div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-6\">");
+        result.AppendLine($"{Indentation2}<h1>{table.Name.ToPascalCase()}</h1>");
+        result.AppendLine($"{Indentation}</div>");
+        result.AppendLine($"{Indentation}<div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-6 text-right\">");
+        result.AppendLine($"{Indentation2}<button title=\"Help\" class=\"btn btn-link deletethis helpIcon\" onclick=\"openHandbook('General_{table.Name.ToPascalCase()}')\">");
+        result.AppendLine($"{Indentation3}<span class=\"fa fa-question-circle fa-lg\"></span>");
+        result.AppendLine($"{Indentation2}</button>");
+        result.AppendLine($"{Indentation}</div>");
+        result.AppendLine($"</div>");
+
+        result.AppendLine($"@section Scripts");
+        result.AppendLine($"{{");
+        result.AppendLine($"{Indentation}<script>");
+        result.AppendLine($"{Indentation2}function EditData(id) {{");
+        result.AppendLine($"{Indentation3}$.ajax({{");
+        result.AppendLine($"{Indentation4}type: \"GET\",");
+        result.AppendLine($"{Indentation4}url: \"/Erp/{table.Name.ToPascalCase()}/AddEditData?\" + $.param({{ code: id }}),");
+        result.AppendLine($"{Indentation4}success: function(response) {{");
+        result.AppendLine($"{Indentation5}$('#placeholderAddEditData').html(response);");
+        result.AppendLine($"{Indentation5}$('#addEditData').modal('show');");
+        result.AppendLine($"{Indentation4}}},");
+        result.AppendLine($"{Indentation4}error: function(xhr, status, error) {{}}");
+        result.AppendLine($"{Indentation3}}});");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function DeleteData(id) {{");
+        result.AppendLine($"{Indentation3}showDialog(\"Delete {modelName}\", \"Are you sure you want to delete {modelName}?\", \"Yes\", \"No\", function(result) {{");
+        result.AppendLine($"{Indentation4}if (result) {{");
+        result.AppendLine($"{Indentation5}$.ajax({{");
+        result.AppendLine($"{Indentation6}type: \"DELETE\",");
+        result.AppendLine($"{Indentation6}url: \"/Erp/{table.Name.ToPascalCase()}/Delete?\" + $.param({{ code: id }}),");
+        result.AppendLine($"{Indentation6}success: function(data) {{");
+        result.AppendLine($"{Indentation7}table.ajax.reload(null, false);");
+        result.AppendLine($"{Indentation6}}},");
+        result.AppendLine($"{Indentation6}error: function(xhr, status, error) {{}}");
+        result.AppendLine($"{Indentation5}}});");
+        result.AppendLine($"{Indentation4}}}");
+        result.AppendLine($"{Indentation3}}});");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function resourceChange() {{");
+        result.AppendLine($"{Indentation3}var selectedVal = $(\"#resource option:selected\").val();");
+        result.AppendLine($"{Indentation3}$(\"#resourceGroup\").val(selectedVal);");
+        result.AppendLine($"{Indentation3}$(\"#workcenter\").val(selectedVal);");
+        result.AppendLine($"{Indentation3}$(\"#site\").val(selectedVal);");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function OnBegin() {{");
+        result.AppendLine($"{Indentation3}$(\"#errormessage\").text(\"\");");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function OnFailure(response) {{");
+        result.AppendLine($"{Indentation3}$(\"#errormessage\").text(response.responseText);");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function OnSuccess(response) {{");
+        result.AppendLine($"{Indentation3}if (response.status == \"success\") {{");
+        result.AppendLine($"{Indentation4}if (response.action == \"refresh\") {{");
+        result.AppendLine($"{Indentation5}table.ajax.reload(null, false);");
+        result.AppendLine($"{Indentation4}}}");
+        result.AppendLine($"{Indentation4}$(\"#addEditData\").modal('hide');");
+        result.AppendLine($"{Indentation3}}}");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function OnComplete() {{");
+        result.AppendLine($"{Indentation3}$(\"#progress\").modal('hide');");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function actionButtons(actionType, dataRow) {{");
+        result.AppendLine($"{Indentation3}if (actionType == 0) {{");
+        result.AppendLine($"{Indentation4}return '<btn title=\"Edit\" class=\"btn btn-link btn-sm editthis\" onclick=\"EditData(\'' + dataRow.worWorkorder + '\')\"><span class=\"fa fa-edit fa-lg\"></span></a>';");
+        result.AppendLine($"{Indentation3}}}");
+        result.AppendLine($"{Indentation3}else if (actionType == 1) {{");
+        result.AppendLine($"{Indentation4}return '<btn title=\"Delete\" class=\"btn btn-link btn-sm deletethis\" onclick=\"DeleteData(\'' + dataRow.worWorkorder + '\')\"><span class=\"fa fa-trash fa-lg\"></span></a>';");
+        result.AppendLine($"{Indentation3}}}");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}var table;");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}$(document).ready(function() {{");
+        result.AppendLine();
+        result.AppendLine($"{Indentation3}table = $(\"#viewGrid\").DataTable({{");
+        result.AppendLine($"{Indentation3}    \"stateSave\": true,");
+        result.AppendLine($"{Indentation3}    \"processing\": true, // for show progress bar");
+        result.AppendLine($"{Indentation3}    \"filter\": true, // this is for disable filter (search box)");
+        result.AppendLine($"{Indentation3}    \"orderMulti\": false, // for disable multiple column at once");
+        result.AppendLine($"{Indentation3}    \"pageLength\": 10,");
+        result.AppendLine($"{Indentation3}    \"searchPanes\": {{");
+        result.AppendLine($"{Indentation3}        viewTotal: true");
+        result.AppendLine($"{Indentation3}    }},");
+        result.AppendLine($"{Indentation3}    \"orderCellsTop\": true,");
+        result.AppendLine($"{Indentation3}    \"fixedHeader\": true,");
+        result.AppendLine($"{Indentation3}    \"ordering\": true,");
+        result.AppendLine($"{Indentation3}    \"ajax\": {{");
+        result.AppendLine($"{Indentation3}        \"url\": \"/Erp/{table.Name.ToPascalCase()}/LoadData\",");
+        result.AppendLine($"{Indentation3}        \"type\": \"GET\",");
+        result.AppendLine($"{Indentation3}        \"datatype\": \"json\"");
+        result.AppendLine($"{Indentation3}    }},");
+        result.AppendLine();
+        result.AppendLine($"{Indentation4}\"columnDefs\":");
+        result.AppendLine($"{Indentation4}    [");
+        result.AppendLine($"{Indentation4}        {{ targets: \"no-sort\", orderable: false }},");
+        result.AppendLine($"{Indentation4}        {{");
+        result.AppendLine($"{Indentation4}            // worRecid");
+        result.AppendLine($"{Indentation4}            \"targets\": [0],");
+        result.AppendLine($"{Indentation4}            \"visible\": false,");
+        result.AppendLine($"{Indentation4}            \"searchable\": false");
+        result.AppendLine($"{Indentation4}        }}");
+        result.AppendLine($"{Indentation4}    ],");
+        result.AppendLine();
+        result.AppendLine($"{Indentation4}\"columns\": [");
+        result.AppendLine($"{Indentation5}{{ \"data\": \"worRecid\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}{{ \"data\": \"worWorkorder\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}// {{ \"data\": \"worCompany\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}// {{ \"data\": \"worErpCode\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}{{ \"data\": \"worItem\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}{{ \"data\": \"worRemainQty\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}{{ \"data\": \"worSchedQty\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}{{ \"data\": \"worStandQty\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}{{ \"data\": \"worStatus\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}// {{ \"data\": \"worProdpool\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation5}// {{ \"data\": \"worStockavailable\", \"autoWidth\": true }},");
+        result.AppendLine($"{Indentation2}@{{");
+        result.AppendLine($"{Indentation3}if ((bool)ViewData[ViewDataCostants.CanManage])");
+        result.AppendLine($"{Indentation3}{{");
+        result.AppendLine($"{Indentation4}<text>");
+        result.AppendLine($"{Indentation5}{{\"render\": function(data, type, full, meta) {{ return actionButtons(0, full); }} }},");
+        result.AppendLine($"{Indentation5}{{\"render\": function(data, type, full, meta) {{ return actionButtons(1, full); }} }},");
+        result.AppendLine($"{Indentation4}</text>");
+        result.AppendLine($"{Indentation3}}}");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine($"{Indentation4}],");
+        result.AppendLine($"{Indentation4}dom: '<\"top\">rt<\"bottom\"lp><\"clear\">i'");
+        result.AppendLine($"{Indentation3}}});");
+        result.AppendLine();
+        result.AppendLine($"{Indentation3}var state = table.state.loaded();");
+        result.AppendLine($"{Indentation3}if (state) {{");
+        result.AppendLine($"{Indentation4}table.columns().eq(0).each(function(colIdx) {{");
+        result.AppendLine($"{Indentation5}var colSearch = state.columns[colIdx].search;");
+        result.AppendLine();
+        result.AppendLine($"{Indentation5}if (colSearch.search) {{");
+        result.AppendLine($"{Indentation6}$('input', table.column(colIdx).header()).val(colSearch.search);");
+        result.AppendLine($"{Indentation5}}}");
+        result.AppendLine($"{Indentation4}}});");
+        result.AppendLine($"{Indentation4}table.draw();");
+        result.AppendLine($"{Indentation3}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation3}table.columns().every(function() {{");
+        result.AppendLine($"{Indentation4}var that = this;");
+        result.AppendLine($"{Indentation4}$('input', this.header()).on('keyup change', function() {{");
+        result.AppendLine($"{Indentation5}if (that.search() !== this.value) {{");
+        result.AppendLine($"{Indentation6}that.search(this.value)");
+        result.AppendLine($"{Indentation7}.draw();");
+        result.AppendLine($"{Indentation5}}}");
+        result.AppendLine($"{Indentation4}}});");
+        result.AppendLine($"{Indentation3}}});");
+        result.AppendLine($"{Indentation2}}});");
+        result.AppendLine($"{Indentation}</script>");
+        result.AppendLine($"}}");
+        result.AppendLine();
+        result.AppendLine($"@if ((bool)ViewData[ViewDataCostants.CanManage])");
+        result.AppendLine($"{{");
+        result.AppendLine($"{Indentation}<form method=\"get\"");
+        result.AppendLine($"{Indentation2}  asp-area=\"Data\"");
+        result.AppendLine($"{Indentation2}  asp-action=\"AddEditData\"");
+        result.AppendLine($"{Indentation2}  asp-controller=\"{table.Name.ToPascalCase()}\"");
+        result.AppendLine($"{Indentation2}  data-ajax=\"true\"");
+        result.AppendLine($"{Indentation2}  data-ajax-method=\"GET\"");
+        result.AppendLine($"{Indentation2}  data-ajax-mode=\"replace\"");
+        result.AppendLine($"{Indentation2}  data-ajax-update=\"#placeholderAddEditData\">");
+        result.AppendLine($"{Indentation2}<button class=\"btn btn-sm btn-primary mb-2\" data-toggle=\"modal\" data-target=\"#addEditData\" onclick=\"EditData()\">New</button>");
+        result.AppendLine($"{Indentation}</form>");
+        result.AppendLine($"}}");
+        result.AppendLine();
+        result.AppendLine($"<div class=\"modal fade\" id=\"addEditData\">");
+        result.AppendLine($"    <div class=\"modal-dialog\">");
+        result.AppendLine($"        <div class=\"modal-content\">");
+        result.AppendLine($"            <div id=\"placeholderAddEditData\">");
+        result.AppendLine($"            </div>");
+        result.AppendLine($"        </div>");
+        result.AppendLine($"    </div>");
+        result.AppendLine($"</div>");
+        result.AppendLine();
+        result.AppendLine($"<table id=\"viewGrid\" class=\"table table-striped dt-responsive mb-2\" cellspacing=\"0\">");
+        result.AppendLine($"    <thead>");
+        result.AppendLine($"        <tr>");
+        result.AppendLine($"            <th>worRecid</th>");
+        result.AppendLine($"            <th>Workorder <input type=\"text\" placeholder=\"Workorder\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th>");
+        result.AppendLine($"            @* <th>Company<input type=\"text\" placeholder=\"Company\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th> *@");
+        result.AppendLine($"            @* <th>ERP<input type=\"text\" placeholder=\"ERP\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th> *@");
+        result.AppendLine($"            <th>Item<input type=\"text\" placeholder=\"Item\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th>");
+        result.AppendLine($"            <th>Remain Qty<input type=\"text\" placeholder=\"Remain Qty\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th>");
+        result.AppendLine($"            <th>Sched Qty<input type=\"text\" placeholder=\"Sched Qty\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th>");
+        result.AppendLine($"            <th>Stand Qty<input type=\"text\" placeholder=\"Stand Qty\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th>");
+        result.AppendLine($"            <th>Status<input type=\"text\" placeholder=\"Status\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th>");
+        result.AppendLine($"            @* <th>Prodpool<input type=\"text\" placeholder=\"Prodpool\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th> *@");
+        result.AppendLine($"            @* <th>Stock Available<input type=\"text\" placeholder=\"Stock Available\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th> *@");
+        result.AppendLine($"            @if ((bool)ViewData[ViewDataCostants.CanManage])");
+        result.AppendLine($"            {{");
+        result.AppendLine($"                <th class=\"no-sort\"></th>");
+        result.AppendLine($"                <th class=\"no-sort\"></th>");
+        result.AppendLine($"            }}");
+        result.AppendLine($"        </tr>");
+        result.AppendLine($"    </thead>");
+        result.AppendLine($"</table>");
+
+        return result.ToString();
+    }
+
     public static string GetPartialViewClass(this Table table,
         string classNamespace,
         string? className = null,
@@ -528,16 +778,16 @@ public static class ExtensionsCode
         foreach (var column in table.WritableColumns)
         {
             result.AppendLine($"{Indentation}<div class=\"form-group\" id=\"form{column.Name.ToPascalCase()}\">");
-            result.AppendLine($"{Indentation2}<label for=\"{column.Name.ToPascalCase()}\">{column.Name.ToPascalCase()}</label>");
+            result.AppendLine($"{Indentation2}<label for=\"{column.Name.ToPascalCase()}\">{column.Name.ToPascalCase()[3..]}</label>");
             if (column.IsNullable)
             {
-                result.AppendLine($"{Indentation2}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Name.ToPascalCase()}\" }} }})");
+                result.AppendLine($"{Indentation2}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Name.ToPascalCase()[3..]}\" }} }})");
             }
             else
             {
-                result.AppendLine($"{Indentation2}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Name.ToPascalCase()}\", required = \"required\" }} }})");
+                result.AppendLine($"{Indentation2}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Name.ToPascalCase()[3..]}\", required = \"required\" }} }})");
                 result.AppendLine($"{Indentation2}<div class=\"invalid-feedback\">");
-                result.AppendLine($"{Indentation3}Please enter {column.Name.ToPascalCase()}");
+                result.AppendLine($"{Indentation3}Please enter {column.Name.ToPascalCase()[3..]}");
                 result.AppendLine($"{Indentation2}</div>");
             }
             result.AppendLine($"{Indentation}</div>");

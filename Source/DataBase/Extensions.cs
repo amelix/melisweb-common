@@ -2,7 +2,7 @@
 
 public static class Extensions
 {
-    public static string ToPascalCase(this string value, char[]? separators = null)
+    public static string ToPascalCase(this string value, string separator = "", char[]? separators = null)
     {
         if (string.IsNullOrEmpty(value))
         {
@@ -19,15 +19,16 @@ public static class Extensions
         {
             words[i] = words[i].Substring(0, 1).ToUpper() + words[i].Substring(1);
         }
-        return string.Join("", words);
+        return string.Join(separator, words);
     }
 
-    public static string ToCamelCase(this string value)
+    public static string ToCamelCase(this string value, char[]? separators = null)
     {
         if (string.IsNullOrEmpty(value))
         {
             return value;
         }
+        value = value.ToPascalCase(separators: separators);
         return value.Substring(0, 1).ToLower() + value.Substring(1);
     }
 
@@ -64,15 +65,19 @@ public static class Extensions
         {
             return value;
         }
-        if (value.EndsWith("ies"))
+        if (value.EndsWith("phases", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return value.Substring(0, value.Length - 1);
+        }
+        if (value.EndsWith("ies", StringComparison.InvariantCultureIgnoreCase))
         {
             return value.Substring(0, value.Length - 3) + "y";
         }
-        if (value.EndsWith("es"))
+        if (value.EndsWith("es", StringComparison.InvariantCultureIgnoreCase))
         {
             return value.Substring(0, value.Length - 2);
         }
-        if (value.EndsWith("s"))
+        if (value.EndsWith("s", StringComparison.InvariantCultureIgnoreCase))
         {
             return value.Substring(0, value.Length - 1);
         }

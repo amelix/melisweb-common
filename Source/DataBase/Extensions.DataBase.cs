@@ -78,13 +78,32 @@ public static class ExtensionsDataBase
     {
         return table.GetCommandName("get_by_keys");
     }
+    public static string GetByIdentityCommandName(this Table table)
+    {
+        return table.GetCommandName("get_by_identity");
+    }
 
+    public static string GetGetByIdentityStoredProcedureScript(this Table table)
+    {
+        if (table == null) return string.Empty;
+        if (table.IdentityColumn == null) return string.Empty;
+
+        var script = new StringBuilder();
+        var procedureName = table.GetByIdentityCommandName();
+        GetStoredProcedureHeader(script, table.DatabaseName, procedureName);
+        script.AppendLine($"ALTER PROCEDURE {procedureName}");
+        script.AppendLine(Indentation + $"@{table.IdentityColumn.Name} {table.IdentityColumn.GetDataType()}");
+        script.AppendLine("AS");
+        script.AppendLine("BEGIN");
+        script.AppendLine(GetByIdentityScript(table, Indentation));
+        script.AppendLine("END");
+        return script.ToString();
+    }
     public static string GetGetByKeyStoredProcedureScript(this Table table)
     {
         if (table == null) return string.Empty;
 
         var script = new StringBuilder();
-        var where = string.Join(" AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
         var procedureName = table.GetByKeyCommandName();
         GetStoredProcedureHeader(script, table.DatabaseName, procedureName);
         script.AppendLine($"ALTER PROCEDURE {procedureName}");
@@ -143,12 +162,19 @@ public static class ExtensionsDataBase
     private static string GetUpdateScript(this Table table, string indentation = "")
     {
         if (table == null) return string.Empty;
-
+        var result = new StringBuilder();
+        var recVersion = table.UpdatableColumns.Where(c => c.Name.EndsWith("_RECVERSION")).FirstOrDefault();
+        if (recVersion != null)
+        {
+            result.AppendLine($"{indentation}SET @{recVersion.Name} = COALESCE(@{recVersion.Name}, 0) + 1");
+            result.AppendLine();
+        }
         var set = string.Join($",\n{indentation}      ", table.UpdatableColumns.Select(c => $"{c.Name} = @{c.Name}"));
         var where = string.Join($"\n{indentation}  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
-        return $@"{indentation}UPDATE {table.Schema}.{table.Name} 
+        result.AppendLine($@"{indentation}UPDATE {table.Schema}.{table.Name} 
 {indentation}  SET {set} 
-{indentation}WHERE {where}";
+{indentation}WHERE {where}");
+        return result.ToString();
     }
 
     private static string GetAllScript(this Table table, string indentation = "", Column[]? requiredColumns = null)
@@ -165,6 +191,18 @@ public static class ExtensionsDataBase
 
         return $@"{indentation}SELECT {columns} 
 {indentation}FROM {table.Name}{where}";
+    }
+
+    private static string GetByIdentityScript(this Table table, string indentation = "")
+    {
+        if (table == null) return string.Empty;
+        if (table.IdentityColumn == null) return string.Empty;
+
+        var where = $"{table.IdentityColumn.Name} = @{table.IdentityColumn.Name}";
+        var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => $"{c.Name} [{c.Name.ToPascalCase()}]"));
+        return $@"{indentation}SELECT {columns}
+{indentation}FROM {table.Name}
+{indentation}WHERE {where}";
     }
 
     private static string GetByKeyScript(this Table table, string indentation = "")

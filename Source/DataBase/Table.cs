@@ -14,5 +14,6 @@ public class Table
 
     public List<Column> PrimaryKeyColumns => Columns.Where(c => c.IsPrimaryKey).ToList();
     public List<Column> WritableColumns => Columns.Where(c => !c.IsIdentity).ToList();
+    public Column? IdentityColumn => Columns.Where(c => c.IsIdentity).FirstOrDefault();
     public List<Column> UpdatableColumns => WritableColumns.Where(c => !c.IsPrimaryKey).ToList();
 }

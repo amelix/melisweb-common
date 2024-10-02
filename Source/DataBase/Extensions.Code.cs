@@ -106,7 +106,7 @@ public static class ExtensionsCode
         #region GetAll
         {
             var requiredColumns = table.Columns.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
             if (parameters.Count == 0)
             {
                 result.AppendLine($"{Indentation2}public async Task<IEnumerable<Model.{entityNameSingular}>> GetAll{entityNamePlural}(params ParamStruct[] paramStructs)");
@@ -121,7 +121,7 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in requiredColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToPascalCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}foreach (var paramStruct in paramStructs)");
             result.AppendLine($"{Indentation3}{{");
@@ -138,7 +138,7 @@ public static class ExtensionsCode
         #region GetByKey
         {
             var requiredColumns = table.PrimaryKeyColumns.ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
             if (parameters.Count == 0)
             {
                 result.AppendLine($"{Indentation2}public async Task<Model.{entityNameSingular}> Get{entityNameSingular}ByKey(params ParamStruct[] paramStructs)");
@@ -152,7 +152,7 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in requiredColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToPascalCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}foreach (var paramStruct in paramStructs)");
             result.AppendLine($"{Indentation3}{{");
@@ -170,7 +170,7 @@ public static class ExtensionsCode
         #region GetByIdentity
         {
             var requiredColumns = new Column[] { table.IdentityColumn };
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
             if (parameters.Count == 0)
             {
                 result.AppendLine($"{Indentation2}public async Task<Model.{entityNameSingular}> Get{entityNameSingular}ByIdentity(params ParamStruct[] paramStructs)");
@@ -184,7 +184,7 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in requiredColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToPascalCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}foreach (var paramStruct in paramStructs)");
             result.AppendLine($"{Indentation3}{{");
@@ -201,14 +201,14 @@ public static class ExtensionsCode
         result.AppendLine();
         #region Save
         {
-            var parameters = table.WritableColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = table.WritableColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<bool> Save{entityNameSingular}({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
             result.AppendLine($"{Indentation3}var command = Model.{entityNameSingular}.SaveCommandName;");
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in table.WritableColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToPascalCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}return await ExecuteAsync<Model.{entityNameSingular}>(");
             result.AppendLine($"{Indentation4}command: command,");
@@ -221,14 +221,14 @@ public static class ExtensionsCode
         #region Delete
         {
             var requiredColumns = table.PrimaryKeyColumns.ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<bool> Delete{entityNameSingular}({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
             result.AppendLine($"{Indentation3}var command = Model.{entityNameSingular}.DeleteCommandName;");
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in requiredColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToPascalCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}return await ExecuteAsync<Model.{entityNameSingular}>(");
             result.AppendLine($"{Indentation4}command: command,");
@@ -305,10 +305,10 @@ public static class ExtensionsCode
         #region GetAll
         {
             var requiredColumns = table.Columns.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<IEnumerable<Model.{entityNameSingular}>> GetAll({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}return await repository.GetAll{entityNamePlural}({string.Join(", ", requiredColumns.Select(c => c.Name.ToPascalCase()))});");
+            result.AppendLine($"{Indentation3}return await repository.GetAll{entityNamePlural}({string.Join(", ", requiredColumns.Select(c => c.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
         }
@@ -594,7 +594,7 @@ public static class ExtensionsCode
         {
             var requiredColumns = table.PrimaryKeyColumns.ToArray();
             var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
-            result.AppendLine($"{Indentation2}[HttpPost]");
+            result.AppendLine($"{Indentation2}[HttpDelete]");
             result.AppendLine($"{Indentation2}public async Task<JsonResult> Delete({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
             result.AppendLine($"{Indentation3}var result = await this.provider.Delete({string.Join(", ", requiredColumns.Select(c => c.Name.ToPascalCase()))});");

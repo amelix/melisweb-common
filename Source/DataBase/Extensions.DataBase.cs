@@ -128,8 +128,30 @@ public static class ExtensionsDataBase
         var procedureName = table.GetGetAllCommandName();
         GetStoredProcedureHeader(script, table.DatabaseName, procedureName);
         script.AppendLine($"ALTER PROCEDURE {procedureName}");
-        if (requiredColumns != null)
-            script.AppendLine(Indentation + string.Join($",\n{Indentation}", requiredColumns.Select(c => $"@{c.Name} {c.GetDataType()}")));
+        //if (requiredColumns != null)
+        //    script.AppendLine(Indentation + string.Join($",\n{Indentation}", requiredColumns.Select(c => $"@{c.Name} {c.GetDataType()}")));
+        bool first = true;
+        foreach (var column in table.Columns)
+        {
+            if (first)
+            {
+                script.Append($"{Indentation} ");
+            }
+            else
+            {
+                script.Append($"{Indentation},");
+            }
+            if (requiredColumns != null && requiredColumns.Contains(column))
+            {
+                script.AppendLine($"@{column.Name} {column.GetDataType()}");
+            }
+            else
+            {
+                script.AppendLine($"@{column.Name} {column.GetDataType()} = NULL");
+            }
+
+            first = false;
+        }
         script.AppendLine("AS");
         script.AppendLine("BEGIN");
         script.AppendLine(GetAllScript(table, Indentation, requiredColumns));
@@ -183,10 +205,27 @@ public static class ExtensionsDataBase
 
         var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => $"{c.Name} [{c.Name.ToPascalCase()}]"));
         var where = "";
-        if (requiredColumns != null && requiredColumns.Length > 0)
+        foreach (var column in table.Columns)
         {
-            where = $"\n{indentation}WHERE ";
-            where += string.Join($"\n{indentation}  AND ", requiredColumns.Select(c => $"{c.Name} = @{c.Name}"));
+            if (where.Length > 0)
+                where += $"\n{indentation}  AND ";
+            if (requiredColumns != null && requiredColumns.Contains(column))
+            {
+                where += $"{column.Name} = @{column.Name}";
+            }
+            else
+            {
+                where += $"(@{column.Name} IS NULL OR {column.Name} = @{column.Name})";
+            }
+        }
+        //if (requiredColumns != null && requiredColumns.Length > 0)
+        //{
+        //    where = $"\n{indentation}WHERE ";
+        //    where += string.Join($"\n{indentation} AND ", requiredColumns.Select(c => $"{c.Name} = @{c.Name}"));
+        //}
+        if (where.Length > 0)
+        {
+            where = $"\n{indentation}WHERE {where}";
         }
 
         return $@"{indentation}SELECT {columns} 

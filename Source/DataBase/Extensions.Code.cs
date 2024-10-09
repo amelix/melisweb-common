@@ -500,7 +500,15 @@ public static class ExtensionsCode
             }
             else
             {
-                result.AppendLine($"{Indentation3}return await this.GetAll(this.companyId, this.erpCode);");
+                if (requiredColumns[0].Name.EndsWith("_COMPANY"))
+                {
+                    result.AppendLine($"{Indentation3}return await this.GetAll(this.companyId, this.erpCode);");
+                }
+                else
+                {
+                    result.AppendLine($"{Indentation3}return await this.GetAll(this.erpCode, this.companyId);");
+                }
+                
             }
             result.AppendLine($"{Indentation3}// return await this.GetAll({string.Join(", ", requiredColumns.Select(c => c.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation2}}}");
@@ -540,16 +548,34 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation4}var model = await this.provider.GetByIdentity(code.Value);");
             result.AppendLine($"{Indentation4}if (model != null)");
             result.AppendLine($"{Indentation4}{{");
+            result.AppendLine($"{Indentation5}ViewData[RmsCommon.Costants.ViewDataCostants.NewRecord] = false;");
             result.AppendLine($"{Indentation5}return PartialView(\"DataPartial\", model);");
             result.AppendLine($"{Indentation4}}}");
             result.AppendLine($"{Indentation3}}}");
             result.AppendLine();
-            result.AppendLine($"{Indentation3}return PartialView(\"DataPartial\");");
+            var requiredColumns2 = table.Columns.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
+            result.AppendLine($"{Indentation3}var emptyModel = new Model.{table.Name.ToPascalCase().ToSingular()}");
+            result.AppendLine($"{Indentation3}{{");
+            foreach (var column in table.Columns)
+            {
+
+                if (column.Name.EndsWith("_COMPANY"))
+                {
+                    result.AppendLine($"{Indentation4}{column.Name.ToPascalCase()} = this.companyId,");
+                }
+                else if (column.Name.EndsWith("_ERP_CODE"))
+                {
+                    result.AppendLine($"{Indentation4}{column.Name.ToPascalCase()} = this.erpCode,");
+                }
+            }
+            result.AppendLine($"{Indentation3}}};");
+            result.AppendLine($"{Indentation3}ViewData[RmsCommon.Costants.ViewDataCostants.NewRecord] = true;");
+            result.AppendLine($"{Indentation3}return PartialView(\"DataPartial\", emptyModel);");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
         }
         #endregion
-        #region Save
+            #region Save
         {
             var parameters = table.WritableColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}[HttpPost]");
@@ -906,7 +932,7 @@ public static class ExtensionsCode
         result.AppendLine($"@model Model.{modelName}");
         result.AppendLine();
         result.AppendLine($"<div class=\"modal-header\">");
-        result.AppendLine($"{Indentation}@if (Model == null)");
+        result.AppendLine($"{Indentation}@if ((bool)ViewData[ViewDataCostants.NewRecord])");
         result.AppendLine($"{Indentation}{{");
         result.AppendLine($"{Indentation2}<h4 class=\"modal-title\">Add {modelName}</h4>");
         result.AppendLine($"{Indentation}}}");
@@ -945,7 +971,7 @@ public static class ExtensionsCode
             }
             else
             {
-                result.AppendLine($"{Indentation2}@if (Model == null)");
+                result.AppendLine($"{Indentation2}@if ((bool)ViewData[ViewDataCostants.NewRecord])");
                 result.AppendLine($"{Indentation2}{{");
                 result.AppendLine($"{Indentation3}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Name.ToPascalCase(" ")[3..]}\", required = \"required\" }} }})");
                 result.AppendLine($"{Indentation2}}}");

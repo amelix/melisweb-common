@@ -508,7 +508,7 @@ public static class ExtensionsCode
                 {
                     result.AppendLine($"{Indentation3}return await this.GetAll(this.erpCode, this.companyId);");
                 }
-                
+
             }
             result.AppendLine($"{Indentation3}// return await this.GetAll({string.Join(", ", requiredColumns.Select(c => c.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation2}}}");
@@ -575,7 +575,7 @@ public static class ExtensionsCode
             result.AppendLine();
         }
         #endregion
-            #region Save
+        #region Save
         {
             var parameters = table.WritableColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}[HttpPost]");
@@ -629,6 +629,23 @@ public static class ExtensionsCode
             result.AppendLine();
         }
         #endregion
+        result.AppendLine($"{Indentation2}#endregion");
+        result.AppendLine($"{Indentation2}#region Import \\ Export");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}[HttpGet]");
+        result.AppendLine($"{Indentation2}[Authorization.RAMSAuthorize(RmsCommon.Enums.RMSOperation.All, RmsCommon.Enums.RMSOperation.ErpManage)]");
+        result.AppendLine($"{Indentation2}public async Task<IActionResult> ExportData()");
+        result.AppendLine($"{Indentation2}{{");
+        result.AppendLine($"{Indentation3}return await LoadData();");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}[HttpGet]");
+        result.AppendLine($"{Indentation2}[Authorization.RAMSAuthorize(RmsCommon.Enums.RMSOperation.All, RmsCommon.Enums.RMSOperation.ErpManage)]");
+        result.AppendLine($"{Indentation2}public async Task<IActionResult> ImportData()");
+        result.AppendLine($"{Indentation2}{{");
+        result.AppendLine($"{Indentation3}return PartialView(\"../Common/FileUploadPartial\");");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
         result.AppendLine($"{Indentation2}#endregion");
         result.AppendLine($"{Indentation}}}");
         result.AppendLine("}");
@@ -691,18 +708,59 @@ public static class ExtensionsCode
         result.AppendLine($"{{");
         result.AppendLine($"{Indentation}<script>");
         result.AppendLine($"{Indentation2}function EditData(id) {{");
+        result.AppendLine($"{Indentation3}$('#placeholderPartialView').html('<br/><i class=\"fa fa-spinner fa-spin fa-fw\"></i> Loading...<br/>');");
+        result.AppendLine($"{Indentation3}$('#divPartialView').modal('show');");
         result.AppendLine($"{Indentation3}$.ajax({{");
         result.AppendLine($"{Indentation4}type: \"GET\",");
         result.AppendLine($"{Indentation4}url: \"/Erp/{table.Name.ToPascalCase()}/AddEditData?\" + $.param({{ code: id }}),");
         result.AppendLine($"{Indentation4}success: function(response) {{");
-        result.AppendLine($"{Indentation5}$('#placeholderAddEditData').html(response);");
-        result.AppendLine($"{Indentation5}$('#addEditData').modal('show');");
+        result.AppendLine($"{Indentation5}$('#placeholderPartialView').html(response);");
+        result.AppendLine($"{Indentation5}$('#divPartialView').modal('show');");
         result.AppendLine($"{Indentation4}}},");
-        result.AppendLine($"{Indentation4}error: function(xhr, status, error) {{}}");
+        result.AppendLine($"{Indentation4}error: function(xhr, status, error) {{");
+        result.AppendLine($"{Indentation5}$('#placeholderPartialView').html('<br/><i class=\"fas fa-exclamation-triangle\" aria-hidden=\"true\" style=\"color: red;\"></i> Error(' + xhr.status + '): ' + error + '<br/>');");
+        result.AppendLine($"{Indentation5}$('#divPartialView').modal('show');");
+        result.AppendLine($"{Indentation4}}}");
+        result.AppendLine($"{Indentation3}}});");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function ExportData() {{");
+        result.AppendLine($"{Indentation3}$('#placeholderPartialView').html('<br/><i class=\"fa fa-spinner fa-spin fa-fw\"></i> Exporting data for {table.Name.ToPascalCase()}...<br/>');");
+        result.AppendLine($"{Indentation3}$('#divPartialView').modal('show');");
+        result.AppendLine($"{Indentation3}$.ajax({{");
+        result.AppendLine($"{Indentation4}type: \"GET\",");
+        result.AppendLine($"{Indentation4}url: \"/Erp/{table.Name.ToPascalCase()}/ExportData\",");
+        result.AppendLine($"{Indentation4}success: function(response) {{");
+        result.AppendLine($"{Indentation5}$('#placeholderPartialView').html(response);");
+        //result.AppendLine($"{Indentation5}$('#divPartialView').modal('show');");
+        result.AppendLine($"{Indentation4}}},");
+        result.AppendLine($"{Indentation4}error: function(xhr, status, error) {{");
+        result.AppendLine($"{Indentation5}$('#placeholderPartialView').html('<br/><i class=\"fas fa-exclamation-triangle\" aria-hidden=\"true\" style=\"color: red;\"></i> Error(' + xhr.status + '): ' + error + '<br/>');");
+        result.AppendLine($"{Indentation5}$('#divPartialView').modal('show');");
+        result.AppendLine($"{Indentation4}}}");
+        result.AppendLine($"{Indentation3}}});");
+        result.AppendLine($"{Indentation2}}}");
+        result.AppendLine();
+        result.AppendLine($"{Indentation2}function ImportData() {{");
+        result.AppendLine($"{Indentation3}$('#placeholderPartialView').html('<br/><i class=\"fa fa-spinner fa-spin fa-fw\"></i> Loading...<br/>');");
+        result.AppendLine($"{Indentation3}$('#divPartialView').modal('show');");
+        result.AppendLine($"{Indentation3}$.ajax({{");
+        result.AppendLine($"{Indentation4}type: \"GET\",");
+        result.AppendLine($"{Indentation4}url: \"/Erp/{table.Name.ToPascalCase()}/ImportData\",");
+        result.AppendLine($"{Indentation4}success: function(response) {{");
+        result.AppendLine($"{Indentation5}$('#placeholderPartialView').html(response);");
+        result.AppendLine($"{Indentation5}$('#divPartialView').modal('show');");
+        result.AppendLine($"{Indentation4}}},");
+        result.AppendLine($"{Indentation4}error: function(xhr, status, error) {{");
+        result.AppendLine($"{Indentation5}$('#placeholderPartialView').html('<br/><i class=\"fas fa-exclamation-triangle\" aria-hidden=\"true\" style=\"color: red;\"></i> Error(' + xhr.status + '): ' + error + '<br/>');");
+        result.AppendLine($"{Indentation5}$('#divPartialView').modal('show');");
+        result.AppendLine($"{Indentation4}}}");
         result.AppendLine($"{Indentation3}}});");
         result.AppendLine($"{Indentation2}}}");
         result.AppendLine();
         result.AppendLine($"{Indentation2}function DeleteData(id) {{");
+        result.AppendLine($"{Indentation3}$('#placeholderPartialView').html('<br/><i class=\"fa fa-spinner fa-spin fa-fw\"></i> Loading...<br/>');");
+        result.AppendLine($"{Indentation3}$('#divPartialView').modal('show');");
         result.AppendLine($"{Indentation3}showDialog(\"Delete {modelName}\", \"Are you sure you want to delete {modelName}?\", \"Yes\", \"No\", function(result) {{");
         result.AppendLine($"{Indentation4}if (result) {{");
         result.AppendLine($"{Indentation5}$.ajax({{");
@@ -710,8 +768,12 @@ public static class ExtensionsCode
         result.AppendLine($"{Indentation6}url: \"/Erp/{table.Name.ToPascalCase()}/Delete?\" + $.param({{ code: id }}),");
         result.AppendLine($"{Indentation6}success: function(data) {{");
         result.AppendLine($"{Indentation7}table.ajax.reload(null, false);");
+        result.AppendLine($"{Indentation7}$('#divPartialView').modal('hide');");
         result.AppendLine($"{Indentation6}}},");
-        result.AppendLine($"{Indentation6}error: function(xhr, status, error) {{}}");
+        result.AppendLine($"{Indentation6}error: function(xhr, status, error) {{");
+        result.AppendLine($"{Indentation7}$('#placeholderPartialView').html('<br/><i class=\"fas fa-exclamation-triangle\" aria-hidden=\"true\" style=\"color: red;\"></i> Error(' + xhr.status + '): ' + error + '<br/>');");
+        result.AppendLine($"{Indentation7}$('#divPartialView').modal('show');");
+        result.AppendLine($"{Indentation6}}}");
         result.AppendLine($"{Indentation5}}});");
         result.AppendLine($"{Indentation4}}}");
         result.AppendLine($"{Indentation3}}});");
@@ -737,7 +799,7 @@ public static class ExtensionsCode
         result.AppendLine($"{Indentation4}if (response.action == \"refresh\") {{");
         result.AppendLine($"{Indentation5}table.ajax.reload(null, false);");
         result.AppendLine($"{Indentation4}}}");
-        result.AppendLine($"{Indentation4}$(\"#addEditData\").modal('hide');");
+        result.AppendLine($"{Indentation4}$(\"#divPartialView\").modal('hide');");
         result.AppendLine($"{Indentation3}}}");
         result.AppendLine($"{Indentation2}}}");
         result.AppendLine();
@@ -846,22 +908,61 @@ public static class ExtensionsCode
         result.AppendLine();
         result.AppendLine($"@if ((bool)ViewData[ViewDataCostants.CanManage])");
         result.AppendLine($"{{");
-        result.AppendLine($"{Indentation}<form method=\"get\"");
-        result.AppendLine($"{Indentation2}  asp-area=\"Data\"");
-        result.AppendLine($"{Indentation2}  asp-action=\"AddEditData\"");
-        result.AppendLine($"{Indentation2}  asp-controller=\"{table.Name.ToPascalCase()}\"");
-        result.AppendLine($"{Indentation2}  data-ajax=\"true\"");
-        result.AppendLine($"{Indentation2}  data-ajax-method=\"GET\"");
-        result.AppendLine($"{Indentation2}  data-ajax-mode=\"replace\"");
-        result.AppendLine($"{Indentation2}  data-ajax-update=\"#placeholderAddEditData\">");
-        result.AppendLine($"{Indentation2}<button class=\"btn btn-sm btn-primary mb-2\" data-toggle=\"modal\" data-target=\"#addEditData\" onclick=\"EditData()\"><span class=\"fas fa-plus-circle\"></span>&nbsp;New</button>");
-        result.AppendLine($"{Indentation}</form>");
+        result.AppendLine($"{Indentation}<div id=\"actionbar\">");
+        result.AppendLine($"{Indentation2}<ul>");
+        result.AppendLine($"{Indentation3}<li>");
+        #region Add new record
+        result.AppendLine($"{Indentation4}@* Add new {table.Name.ToPascalCase().ToSingular()} *@");
+        result.AppendLine($"{Indentation4}<form method=\"get\"");
+        result.AppendLine($"{Indentation5}  asp-area=\"Data\"");
+        result.AppendLine($"{Indentation5}  asp-action=\"AddEditData\"");
+        result.AppendLine($"{Indentation5}  asp-controller=\"{table.Name.ToPascalCase()}\"");
+        result.AppendLine($"{Indentation5}  data-ajax=\"true\"");
+        result.AppendLine($"{Indentation5}  data-ajax-method=\"GET\"");
+        result.AppendLine($"{Indentation5}  data-ajax-mode=\"replace\"");
+        result.AppendLine($"{Indentation5}  data-ajax-update=\"#placeholderPartialView\">");
+        result.AppendLine($"{Indentation5}<button class=\"btn btn-sm btn-primary mb-2\" data-toggle=\"modal\" data-target=\"#divPartialView\" onclick=\"EditData()\"><span class=\"fas fa-plus-circle\"></span>&nbsp;New</button>");
+        result.AppendLine($"{Indentation4}</form>");
+        #endregion
+        result.AppendLine($"{Indentation3}</li>");
+        result.AppendLine($"{Indentation3}<li>");
+        #region Export to Excel
+        result.AppendLine($"{Indentation4}@* Export {table.Name.ToPascalCase().ToSingular()} to CSV *@");
+        result.AppendLine($"{Indentation4}<form method=\"get\"");
+        result.AppendLine($"{Indentation5}  asp-area=\"Data\"");
+        result.AppendLine($"{Indentation5}  asp-action=\"AddExportData\"");
+        result.AppendLine($"{Indentation5}  asp-controller=\"{table.Name.ToPascalCase()}\"");
+        result.AppendLine($"{Indentation5}  data-ajax=\"true\"");
+        result.AppendLine($"{Indentation5}  data-ajax-method=\"GET\"");
+        result.AppendLine($"{Indentation5}  data-ajax-mode=\"replace\"");
+        result.AppendLine($"{Indentation5}  data-ajax-update=\"#placeholderPartialView\">");
+        result.AppendLine($"{Indentation5}<button class=\"btn btn-sm btn-primary mb-2\" data-toggle=\"modal\" data-target=\"#divPartialView\" onclick=\"ExportData()\"><span class=\"fas fa-download\"></span>&nbsp;Export</button>");
+        result.AppendLine($"{Indentation4}</form>");
+        #endregion
+        result.AppendLine($"{Indentation3}</li>");
+        result.AppendLine($"{Indentation3}<li>");
+        #region Import to Excel
+        result.AppendLine($"{Indentation4}@* Import {table.Name.ToPascalCase().ToSingular()} to CSV *@");
+        result.AppendLine($"{Indentation4}<form method=\"get\"");
+        result.AppendLine($"{Indentation5}  asp-area=\"Data\"");
+        result.AppendLine($"{Indentation5}  asp-action=\"AddImportData\"");
+        result.AppendLine($"{Indentation5}  asp-controller=\"{table.Name.ToPascalCase()}\"");
+        result.AppendLine($"{Indentation5}  data-ajax=\"true\"");
+        result.AppendLine($"{Indentation5}  data-ajax-method=\"GET\"");
+        result.AppendLine($"{Indentation5}  data-ajax-mode=\"replace\"");
+        result.AppendLine($"{Indentation5}  data-ajax-update=\"#placeholderPartialView\">");
+        result.AppendLine($"{Indentation5}<button class=\"btn btn-sm btn-primary mb-2\" data-toggle=\"modal\" data-target=\"#divPartialView\" onclick=\"ImportData()\"><span class=\"fas fa-upload\"></span>&nbsp;Import</button>");
+        result.AppendLine($"{Indentation4}</form>");
+        #endregion
+        result.AppendLine($"{Indentation3}</li>");
+        result.AppendLine($"{Indentation2}</ul>");
+        result.AppendLine($"{Indentation}</div>");
         result.AppendLine($"}}");
         result.AppendLine();
-        result.AppendLine($"<div class=\"modal fade\" id=\"addEditData\">");
+        result.AppendLine($"<div class=\"modal fade\" id=\"divPartialView\">");
         result.AppendLine($"{Indentation}<div class=\"modal-dialog\">");
         result.AppendLine($"{Indentation2}<div class=\"modal-content\">");
-        result.AppendLine($"{Indentation3}<div id=\"placeholderAddEditData\"></div>");
+        result.AppendLine($"{Indentation3}<div id=\"placeholderPartialView\"></div>");
         result.AppendLine($"{Indentation2}</div>");
         result.AppendLine($"{Indentation}</div>");
         result.AppendLine($"</div>");

@@ -8,6 +8,7 @@ namespace MelisWeb.Common.DataBase;
 
 public class Column
 {
+    public string ColumnName { get; set; }
     public string Name { get; set; }
     public string Type { get; set; }
     public int MaxLength { get; set; }
@@ -69,5 +70,39 @@ public class Column
         }
 
         return Type + nullable;
+    }
+
+    public string GetCodeConvertDataType()
+    {
+        if (Type == "varchar" || Type == "char")
+        {
+            return "Convert.ToString";
+        }
+        else if (Type == "nvarchar" || Type == "nchar")
+        {
+            return "Convert.ToString";
+        }
+        else if (Type == "decimal" || Type == "numeric")
+        {
+            return "Convert.ToDecimal";
+        }
+        else if (Type == "int")
+        {
+            return "Convert.ToInt32";
+        }
+        else if (Type == "bigint")
+        {
+            return "Convert.ToInt64";
+        }
+        else if (Type == "bit")
+        {
+            return "Convert.ToBoolean";
+        }
+        else if (Type == "datetime")
+        {
+            return "Convert.ToDateTime";
+        }
+
+        return "Convert.To" + Type;
     }
 }

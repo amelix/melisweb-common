@@ -107,6 +107,7 @@ SELECT
                     {
                         columns.Add(new Column
                         {
+                            ColumnName = reader.GetString(0),
                             Name = reader.GetString(0),
                             Type = reader.GetString(1),
                             MaxLength = reader.GetInt16(2),

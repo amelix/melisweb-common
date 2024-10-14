@@ -83,4 +83,40 @@ public static class Extensions
         }
         return value;
     }
+
+    /// <summary>
+    /// Make a deep copy of the "from" object in "to" object
+    /// </summary>
+    /// <param name="to"></param>
+    /// <param name="from"></param>
+    public static void DeepCopy<T, J>(this T to, J from, Func<Tuple<string, object>, object> customEval = null)
+    {
+        foreach (var field in from.GetType().GetFields())
+        {
+            to.GetType().GetField(field.Name)?.SetValue(to, field.GetValue(from));
+        }
+
+        foreach (var property in from.GetType().GetProperties())
+        {
+            var toProperty = to.GetType().GetProperty(property.Name, System.Reflection.BindingFlags.SetField | System.Reflection.BindingFlags.SetProperty);
+
+            if (toProperty == null)
+            {
+                continue;
+            }
+
+            var value = property.GetValue(from, null);
+
+            if ((value is Enum) && (customEval != null))
+            {
+                // Check if the value is an enum and there is a custom evaluation function
+                var customValue = customEval(new Tuple<string, object>(property.Name, value));
+                toProperty.SetValue(to, customValue, null);
+            }
+            else
+            {
+                toProperty.SetValue(to, value, null);
+            }
+        }
+    }
 }

@@ -12,8 +12,12 @@ public class Table
 
     public List<Table> Childs { get; set; }
 
+    [JsonIgnore]
     public List<Column> PrimaryKeyColumns => Columns.Where(c => c.IsPrimaryKey).ToList();
+    [JsonIgnore]
     public List<Column> WritableColumns => Columns.Where(c => !c.IsIdentity).ToList();
+    [JsonIgnore]
     public Column? IdentityColumn => Columns.Where(c => c.IsIdentity).FirstOrDefault();
+    [JsonIgnore]
     public List<Column> UpdatableColumns => WritableColumns.Where(c => !c.IsPrimaryKey).ToList();
 }

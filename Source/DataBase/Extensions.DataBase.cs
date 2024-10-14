@@ -186,12 +186,11 @@ public static class ExtensionsDataBase
         if (table == null) return string.Empty;
         var result = new StringBuilder();
         var recVersion = table.UpdatableColumns.Where(c => c.Name.EndsWith("_RECVERSION")).FirstOrDefault();
-        if (recVersion != null)
+        var set = string.Join($",\n{indentation}      ", table.UpdatableColumns.Where(c => !c.Name.EndsWith("_RECVERSION")).Select(c => $"{c.Name} = @{c.Name}"));
+        if(recVersion != null)
         {
-            result.AppendLine($"{indentation}SET @{recVersion.Name} = COALESCE(@{recVersion.Name}, 0) + 1");
-            result.AppendLine();
+            set += $",\n{indentation}      {recVersion.Name} = COALESCE(@{recVersion.Name}, {recVersion.Name}) + 1";
         }
-        var set = string.Join($",\n{indentation}      ", table.UpdatableColumns.Select(c => $"{c.Name} = @{c.Name}"));
         var where = string.Join($"\n{indentation}  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
         result.AppendLine($@"{indentation}UPDATE {table.Schema}.{table.Name} 
 {indentation}  SET {set} 

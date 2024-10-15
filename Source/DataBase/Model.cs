@@ -18,15 +18,21 @@ namespace MelisWeb.Common.DataBase
 
         public List<Property> Properties { get; set; } = new List<Property>();
 
+        public string? AdditionalFilter { get; set; }
+
         [JsonIgnore]
         public Table Table { get; set; }
+
         [JsonIgnore]
-        public List<Property> PrimaryKeyColumns => Properties.Where(c => c.IsPrimaryKey).ToList();
+        public List<Property> PrimaryKeyColumns => Properties.Where(c => c.Database.IsPrimaryKey).ToList();
+        
         [JsonIgnore]
-        public List<Property> WritableColumns => Properties.Where(c => !c.IsIdentity).ToList();
+        public List<Property> WritableColumns => Properties.Where(c => !c.Database.IsIdentity).ToList();
+        
         [JsonIgnore]
-        public Property? IdentityColumn => Properties.Where(c => c.IsIdentity).FirstOrDefault();
+        public Property? IdentityColumn => Properties.Where(c => c.Database.IsIdentity).FirstOrDefault();
+        
         [JsonIgnore]
-        public List<Property> UpdatableColumns => WritableColumns.Where(c => !c.IsPrimaryKey).ToList();
+        public List<Property> UpdatableColumns => WritableColumns.Where(c => !c.Database.IsPrimaryKey).ToList();
     }
 }

@@ -107,8 +107,8 @@ public static class ExtensionsCode
 
         #region GetAll
         {
-            var requiredColumns = table.Properties.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var requiredColumns = table.Properties.Where(c => c.Database.Name.EndsWith("_COMPANY") || c.Database.Name.EndsWith("_ERP_CODE")).ToArray();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             if (parameters.Count == 0)
             {
                 result.AppendLine($"{Indentation2}public async Task<IEnumerable<Model.{entityNameSingular}>> GetAll{entityNamePlural}(params ParamStruct[] paramStructs)");
@@ -123,7 +123,7 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in requiredColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Database.Name}\", {column.Database.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}foreach (var paramStruct in paramStructs)");
             result.AppendLine($"{Indentation3}{{");
@@ -140,7 +140,7 @@ public static class ExtensionsCode
         #region GetByKey
         {
             var requiredColumns = table.PrimaryKeyColumns.ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             if (parameters.Count == 0)
             {
                 result.AppendLine($"{Indentation2}public async Task<Model.{entityNameSingular}> Get{entityNameSingular}ByKey(params ParamStruct[] paramStructs)");
@@ -154,7 +154,7 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in requiredColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Database.Name}\", {column.Database.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}foreach (var paramStruct in paramStructs)");
             result.AppendLine($"{Indentation3}{{");
@@ -171,8 +171,8 @@ public static class ExtensionsCode
         result.AppendLine();
         #region GetByIdentity
         {
-            var requiredColumns = new Column[] { table.IdentityColumn };
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var requiredColumns = new Property[] { table.IdentityColumn };
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             if (parameters.Count == 0)
             {
                 result.AppendLine($"{Indentation2}public async Task<Model.{entityNameSingular}> Get{entityNameSingular}ByIdentity(params ParamStruct[] paramStructs)");
@@ -186,7 +186,7 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in requiredColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Database.Name}\", {column.Database.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}foreach (var paramStruct in paramStructs)");
             result.AppendLine($"{Indentation3}{{");
@@ -203,14 +203,14 @@ public static class ExtensionsCode
         result.AppendLine();
         #region Save
         {
-            var parameters = table.WritableColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var parameters = table.WritableColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<bool> Save{entityNameSingular}({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
             result.AppendLine($"{Indentation3}var command = Model.{entityNameSingular}.SaveCommandName;");
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in table.WritableColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Database.Name}\", {column.Database.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}return await ExecuteAsync<Model.{entityNameSingular}>(");
             result.AppendLine($"{Indentation4}command: command,");
@@ -223,14 +223,14 @@ public static class ExtensionsCode
         #region Delete
         {
             var requiredColumns = table.PrimaryKeyColumns.ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<bool> Delete{entityNameSingular}({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
             result.AppendLine($"{Indentation3}var command = Model.{entityNameSingular}.DeleteCommandName;");
             result.AppendLine($"{Indentation3}var parameters = new DynamicParameters();");
             foreach (var column in requiredColumns)
             {
-                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Name}\", {column.Name.ToCamelCase()});");
+                result.AppendLine($"{Indentation3}parameters.Add(\"{column.Database.Name}\", {column.Database.Name.ToCamelCase()});");
             }
             result.AppendLine($"{Indentation3}return await ExecuteAsync<Model.{entityNameSingular}>(");
             result.AppendLine($"{Indentation4}command: command,");
@@ -306,11 +306,11 @@ public static class ExtensionsCode
         result.AppendLine();
         #region GetAll
         {
-            var requiredColumns = table.Properties.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var requiredColumns = table.Properties.Where(c => c.Database.Name.EndsWith("_COMPANY") || c.Database.Name.EndsWith("_ERP_CODE")).ToArray();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<IEnumerable<Model.{entityNameSingular}>> GetAll({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}return await repository.GetAll{entityNamePlural}({string.Join(", ", requiredColumns.Select(c => c.Name.ToCamelCase()))});");
+            result.AppendLine($"{Indentation3}return await repository.GetAll{entityNamePlural}({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
         }
@@ -318,31 +318,31 @@ public static class ExtensionsCode
         #region GetByKey
         {
             var requiredColumns = table.PrimaryKeyColumns.ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToPascalCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<Model.{entityNameSingular}> GetByKey({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}return await repository.Get{entityNameSingular}ByKey({string.Join(", ", requiredColumns.Select(c => c.Name.ToPascalCase()))});");
+            result.AppendLine($"{Indentation3}return await repository.Get{entityNameSingular}ByKey({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToPascalCase()))});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
         }
         #endregion
         #region GetByIdentity
         {
-            var requiredColumns = new Column[] { table.IdentityColumn };
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var requiredColumns = new Property[] { table.IdentityColumn };
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToPascalCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<Model.{entityNameSingular}> GetByIdentity({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}return await repository.Get{entityNameSingular}ByIdentity({string.Join(", ", requiredColumns.Select(c => c.Name.ToPascalCase()))});");
+            result.AppendLine($"{Indentation3}return await repository.Get{entityNameSingular}ByIdentity({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToPascalCase()))});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
         }
         #endregion
         #region Save
         {
-            var parameters = table.WritableColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = table.WritableColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToPascalCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<bool> Save({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}return await repository.Save{entityNameSingular}({string.Join(", ", table.WritableColumns.Select(c => c.Name.ToPascalCase()))});");
+            result.AppendLine($"{Indentation3}return await repository.Save{entityNameSingular}({string.Join(", ", table.WritableColumns.Select(c => c.Database.Name.ToPascalCase()))});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
 
@@ -353,7 +353,7 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation2}/// <returns>A task that represents the asynchronous save operation. The task result contains a boolean indicating success or failure.</returns>");
             result.AppendLine($"{Indentation2}public async Task<bool> Save(Model.{entityNameSingular} model)");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}return await repository.Save{entityNameSingular}(model.{string.Join(", model.", table.WritableColumns.Select(c => c.Name.ToPascalCase()))});");
+            result.AppendLine($"{Indentation3}return await repository.Save{entityNameSingular}(model.{string.Join(", model.", table.WritableColumns.Select(c => c.Database.Name.ToPascalCase()))});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
         }
@@ -361,10 +361,10 @@ public static class ExtensionsCode
         #region Delete
         {
             var requiredColumns = table.PrimaryKeyColumns.ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToPascalCase()}").ToList();
             result.AppendLine($"{Indentation2}public async Task<bool> Delete({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}return await repository.Delete{entityNameSingular}({string.Join(", ", requiredColumns.Select(c => c.Name.ToPascalCase()))});");
+            result.AppendLine($"{Indentation3}return await repository.Delete{entityNameSingular}({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToPascalCase()))});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
         }
@@ -427,7 +427,7 @@ public static class ExtensionsCode
         result.AppendLine();
         result.AppendLine($"{Indentation2}internal string userName => this.User.Identity.Name;");
         result.AppendLine($"{Indentation2}internal string companyId => this.User.Identity.GetCompanyId();");
-        result.AppendLine($"{Indentation2}internal string erpCode => User.Identity.GetEntityId();");
+        result.AppendLine($"{Indentation2}internal string erpCode => this.User.Identity.GetEntityId();");
         result.AppendLine();
         result.AppendLine($"{Indentation2}internal {classNameRepository} repository {{ get; }}");
         result.AppendLine($"{Indentation2}internal {classNameProvider} provider {{ get; }}");
@@ -478,12 +478,12 @@ public static class ExtensionsCode
         result.AppendLine();
         #region GetAll
         {
-            var requiredColumns = model.Properties.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var requiredColumns = model.Properties.Where(c => c.Database.Name.EndsWith("_COMPANY") || c.Database.Name.EndsWith("_ERP_CODE")).ToArray();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}[HttpGet]");
             result.AppendLine($"{Indentation2}public async Task<JsonResult> GetAll({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}var model = await this.provider.GetAll({string.Join(", ", requiredColumns.Select(c => c.Name.ToCamelCase()))});");
+            result.AppendLine($"{Indentation3}var model = await this.provider.GetAll({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation3}return Json(new {{ data = model }});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
@@ -497,7 +497,7 @@ public static class ExtensionsCode
             }
             else if (requiredColumns.Length == 1)
             {
-                if (requiredColumns[0].Name.EndsWith("_COMPANY"))
+                if (requiredColumns[0].Database.Name.EndsWith("_COMPANY"))
                 {
                     result.AppendLine($"{Indentation3}return await this.GetAll(this.companyId);");
                 }
@@ -508,7 +508,7 @@ public static class ExtensionsCode
             }
             else
             {
-                if (requiredColumns[0].Name.EndsWith("_COMPANY"))
+                if (requiredColumns[0].Database.Name.EndsWith("_COMPANY"))
                 {
                     result.AppendLine($"{Indentation3}return await this.GetAll(this.companyId, this.erpCode);");
                 }
@@ -518,7 +518,7 @@ public static class ExtensionsCode
                 }
 
             }
-            //result.AppendLine($"{Indentation3}// return await this.GetAll({string.Join(", ", requiredColumns.Select(c => c.Name.ToCamelCase()))});");
+            //result.AppendLine($"{Indentation3}// return await this.GetAll({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
         }
@@ -526,11 +526,11 @@ public static class ExtensionsCode
         #region GetByKey
         {
             var requiredColumns = model.PrimaryKeyColumns.ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}[HttpGet]");
             result.AppendLine($"{Indentation2}public async Task<JsonResult> GetByKey({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}var model = await this.provider.GetByKey({string.Join(", ", requiredColumns.Select(c => c.Name.ToCamelCase()))});");
+            result.AppendLine($"{Indentation3}var model = await this.provider.GetByKey({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation3}return Json(new {{ data = model }});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
@@ -538,12 +538,12 @@ public static class ExtensionsCode
         #endregion
         #region GetByIdentity
         {
-            var requiredColumns = new Column[] { model.IdentityColumn };
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var requiredColumns = new Property[] { model.IdentityColumn };
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}[HttpGet]");
             result.AppendLine($"{Indentation2}public async Task<JsonResult> GetByIdentity({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}var model = await this.provider.GetByIdentity({string.Join(", ", requiredColumns.Select(c => c.Name.ToCamelCase()))});");
+            result.AppendLine($"{Indentation3}var model = await this.provider.GetByIdentity({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation3}return Json(new {{ data = model }});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
@@ -561,19 +561,19 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation4}}}");
             result.AppendLine($"{Indentation3}}}");
             result.AppendLine();
-            var requiredColumns2 = model.Properties.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
+            var requiredColumns2 = model.Properties.Where(c => c.Database.Name.EndsWith("_COMPANY") || c.Database.Name.EndsWith("_ERP_CODE")).ToArray();
             result.AppendLine($"{Indentation3}var emptyModel = new Model.{model.Name.ToPascalCase().ToSingular()}");
             result.AppendLine($"{Indentation3}{{");
-            foreach (var column in model.Properties)
+            foreach (var property in model.Properties)
             {
 
-                if (column.Name.EndsWith("_COMPANY"))
+                if (property.Database.Name.EndsWith("_COMPANY"))
                 {
-                    result.AppendLine($"{Indentation4}{column.Name.ToPascalCase()} = this.companyId,");
+                    result.AppendLine($"{Indentation4}{property.Database.Name.ToPascalCase()} = this.companyId,");
                 }
-                else if (column.Name.EndsWith("_ERP_CODE"))
+                else if (property.Database.Name.EndsWith("_ERP_CODE"))
                 {
-                    result.AppendLine($"{Indentation4}{column.Name.ToPascalCase()} = this.erpCode,");
+                    result.AppendLine($"{Indentation4}{property.Database.Name.ToPascalCase()} = this.erpCode,");
                 }
             }
             result.AppendLine($"{Indentation3}}};");
@@ -586,11 +586,11 @@ public static class ExtensionsCode
         #region Save \ SaveData
         {
             var requiredColumns = model.PrimaryKeyColumns.ToArray();
-            var parameters = model.WritableColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToCamelCase()}").ToList();
+            var parameters = model.WritableColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToCamelCase()}").ToList();
             result.AppendLine($"{Indentation2}[HttpPost]");
             result.AppendLine($"{Indentation2}public async Task<JsonResult> Save({string.Join(", ", parameters)})");
             result.AppendLine($"{Indentation2}{{");
-            result.AppendLine($"{Indentation3}var result = await this.provider.Save({string.Join(", ", model.WritableColumns.Select(c => c.Name.ToCamelCase()))});");
+            result.AppendLine($"{Indentation3}var result = await this.provider.Save({string.Join(", ", model.WritableColumns.Select(c => c.Database.Name.ToCamelCase()))});");
             result.AppendLine($"{Indentation3}return Json(new {{ success = result }});");
             result.AppendLine($"{Indentation2}}}");
             result.AppendLine();
@@ -602,40 +602,40 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation3}{{");
             if (model.IdentityColumn != null)
             {
-                result.AppendLine($"{Indentation4}if (model.{model.IdentityColumn.Name.ToPascalCase()} == 0)");
+                result.AppendLine($"{Indentation4}if (model.{model.IdentityColumn.Database.Name.ToPascalCase()} == 0)");
                 result.AppendLine($"{Indentation4}{{");
-                result.AppendLine($"{Indentation5}var modelOld = await this.provider.GetByKey(model.{string.Join(", model.", requiredColumns.Select(c => c.Name.ToPascalCase()))});");
+                result.AppendLine($"{Indentation5}var modelOld = await this.provider.GetByKey(model.{string.Join(", model.", requiredColumns.Select(c => c.Database.Name.ToPascalCase()))});");
                 result.AppendLine($"{Indentation5}if (modelOld != null)");
                 result.AppendLine($"{Indentation5}{{");
                 result.AppendLine($"{Indentation6}this.toastNotification.AddErrorToastMessage(\"Data already exists.\");");
                 result.AppendLine($"{Indentation6}return StatusCode(500, \"Data already exists.\");");
                 result.AppendLine($"{Indentation5}}}");
                 result.AppendLine();
-                foreach (var column in model.Properties)
+                foreach (var property in model.Properties)
                 {
-                    if (!column.VisibleInCreate && !string.IsNullOrWhiteSpace(column.DefaultValue))
+                    if (!property.VisibleInCreate && !string.IsNullOrWhiteSpace(property.DefaultValue))
                     {
-                        result.AppendLine($"{Indentation5}model.{column.Name.ToPascalCase()} = {column.DefaultValue};");
+                        result.AppendLine($"{Indentation5}model.{property.Database.Name.ToPascalCase()} = {property.DefaultValue};");
                     }
                 }
                 result.AppendLine($"{Indentation4}}}");
                 result.AppendLine();
             }
 
-            foreach (var column in model.Properties)
+            foreach (var property in model.Properties)
             {
 
-                if (column.Name.EndsWith("_COMPANY"))
+                if (property.Database.Name.EndsWith("_COMPANY"))
                 {
-                    result.AppendLine($"{Indentation4}model.{column.Name.ToPascalCase()} = this.companyId;");
+                    result.AppendLine($"{Indentation4}model.{property.Database.Name.ToPascalCase()} = this.companyId;");
                 }
-                else if (column.Name.EndsWith("_ERP_CODE"))
+                else if (property.Database.Name.EndsWith("_ERP_CODE"))
                 {
-                    result.AppendLine($"{Indentation4}model.{column.Name.ToPascalCase()} = this.erpCode;");
+                    result.AppendLine($"{Indentation4}model.{property.Database.Name.ToPascalCase()} = this.erpCode;");
                 }
             }
             result.AppendLine();
-            result.AppendLine($"{Indentation4}if(await this.provider.Save({string.Join($", \r\n{Indentation5}", model.WritableColumns.Select(c => $"model.{c.Name.ToPascalCase()}"))}))");
+            result.AppendLine($"{Indentation4}if(await this.provider.Save({string.Join($", \r\n{Indentation5}", model.WritableColumns.Select(c => $"model.{c.Database.Name.ToPascalCase()}"))}))");
             result.AppendLine($"{Indentation4}{{");
             result.AppendLine($"{Indentation5}this.toastNotification.AddSuccessToastMessage(\"Data saved successfully.\");");
             result.AppendLine($"{Indentation5}return Ok(new {{ status = \"success\", action = \"refresh\" }});");
@@ -650,18 +650,18 @@ public static class ExtensionsCode
         #region Delete
         {
             var requiredColumns = model.PrimaryKeyColumns.ToArray();
-            var parameters = requiredColumns.Select(c => $"{c.GetCodeDataType()} {c.Name.ToPascalCase()}").ToList();
+            var parameters = requiredColumns.Select(c => $"{c.Database.GetCodeDataType()} {c.Database.Name.ToPascalCase()}").ToList();
             result.AppendLine($"{Indentation2}[HttpDelete]");
             result.AppendLine($"{Indentation2}[Authorization.RAMSAuthorize(RmsCommon.Enums.RMSOperation.All, RmsCommon.Enums.RMSOperation.ErpManage)]");
             if (model.IdentityColumn == null)
             {
                 result.AppendLine($"{Indentation2}public async Task<IActionResult> Delete({string.Join(", ", parameters)})");
                 result.AppendLine($"{Indentation2}{{");
-                result.AppendLine($"{Indentation3}var result = await this.provider.Delete({string.Join(", ", requiredColumns.Select(c => c.Name.ToPascalCase()))});");
+                result.AppendLine($"{Indentation3}var result = await this.provider.Delete({string.Join(", ", requiredColumns.Select(c => c.Database.Name.ToPascalCase()))});");
             }
             else
             {
-                result.AppendLine($"{Indentation2}public async Task<IActionResult> Delete({model.IdentityColumn.GetCodeDataType()} code)");
+                result.AppendLine($"{Indentation2}public async Task<IActionResult> Delete({model.IdentityColumn.Database.GetCodeDataType()} code)");
                 result.AppendLine($"{Indentation2}{{");
                 result.AppendLine($"{Indentation3}var model = await this.provider.GetByIdentity(code);");
                 result.AppendLine($"{Indentation3}if (model == null)");
@@ -669,7 +669,7 @@ public static class ExtensionsCode
                 result.AppendLine($"{Indentation4}this.toastNotification.AddErrorToastMessage(\"Data not found.\");");
                 result.AppendLine($"{Indentation4}return StatusCode(500, \"Data not saved.\");");
                 result.AppendLine($"{Indentation3}}}");
-                result.AppendLine($"{Indentation3}var result = await this.provider.Delete(model.{string.Join(", model.", requiredColumns.Select(c => c.Name.ToPascalCase()))});");
+                result.AppendLine($"{Indentation3}var result = await this.provider.Delete(model.{string.Join(", model.", requiredColumns.Select(c => c.Database.Name.ToPascalCase()))});");
             }
             result.AppendLine($"{Indentation3}if (!result)");
             result.AppendLine($"{Indentation3}{{");
@@ -690,12 +690,12 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation2}[Authorization.RAMSAuthorize(RmsCommon.Enums.RMSOperation.All, RmsCommon.Enums.RMSOperation.ErpManage)]");
             result.AppendLine($"{Indentation2}public async Task<IActionResult> ExportData()");
             result.AppendLine($"{Indentation2}{{");
-            var requiredColumns = model.Properties.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE")).ToArray();
+            var requiredColumns = model.Properties.Where(c => c.Database.Name.EndsWith("_COMPANY") || c.Database.Name.EndsWith("_ERP_CODE")).ToArray();
             result.Append($"{Indentation3}var result = await this.provider.GetAll(");
             if (requiredColumns.Length == 0) { }
             else if (requiredColumns.Length == 1)
             {
-                if (requiredColumns[0].Name.EndsWith("_COMPANY"))
+                if (requiredColumns[0].Database.Name.EndsWith("_COMPANY"))
                 {
                     result.Append($"this.companyId");
                 }
@@ -706,7 +706,7 @@ public static class ExtensionsCode
             }
             else
             {
-                if (requiredColumns[0].Name.EndsWith("_COMPANY"))
+                if (requiredColumns[0].Database.Name.EndsWith("_COMPANY"))
                 {
                     result.Append($"this.companyId, this.erpCode");
                 }
@@ -764,20 +764,20 @@ public static class ExtensionsCode
             result.AppendLine($"{Indentation4}if (string.IsNullOrWhiteSpace(result[i])) continue;");
             result.AppendLine($"{Indentation4}var values = result[i].Split(',');");
             result.AppendLine($"{Indentation4}var model = new Model.{model.Name.ToPascalCase().ToSingular()}();");
-            foreach (var column in model.Properties)
+            foreach (var property in model.Properties)
             {
-                if (column.Name.EndsWith("_COMPANY"))
+                if (property.Database.Name.EndsWith("_COMPANY"))
                 {
-                    result.AppendLine($"{Indentation4}model.{column.Name.ToPascalCase()} = this.companyId;");
+                    result.AppendLine($"{Indentation4}model.{property.Database.Name.ToPascalCase()} = this.companyId;");
                 }
-                else if (column.Name.EndsWith("_ERP_CODE"))
+                else if (property.Database.Name.EndsWith("_ERP_CODE"))
                 {
-                    result.AppendLine($"{Indentation4}model.{column.Name.ToPascalCase()} = this.erpCode;");
+                    result.AppendLine($"{Indentation4}model.{property.Database.Name.ToPascalCase()} = this.erpCode;");
                 }
                 else
                 {
-                    result.AppendLine($"{Indentation4}index = columns.IndexOf(\"{column.Name.ToPascalCase()}\");");
-                    result.AppendLine($"{Indentation4}if (index >= 0) model.{column.Name.ToPascalCase()} = {column.GetCodeConvertDataType()}(values[index].Trim('\"'));");
+                    result.AppendLine($"{Indentation4}index = columns.IndexOf(\"{property.Database.Name.ToPascalCase()}\");");
+                    result.AppendLine($"{Indentation4}if (index >= 0) model.{property.Database.Name.ToPascalCase()} = {property.Database.GetCodeConvertDataType()}(values[index].Trim('\"'));");
                 }
             }
             result.AppendLine();
@@ -953,10 +953,10 @@ public static class ExtensionsCode
         result.AppendLine();
         result.AppendLine($"{Indentation2}function actionButtons(actionType, dataRow) {{");
         result.AppendLine($"{Indentation3}if (actionType == 0) {{");
-        result.AppendLine($"{Indentation4}return '<btn title=\"Edit\" class=\"btn btn-link btn-sm editthis\" onclick=\"EditData(' + dataRow.{table.IdentityColumn!.Name.ToCamelCase()} + ');\"><span class=\"fa fa-edit fa-lg\"></span></a>';");
+        result.AppendLine($"{Indentation4}return '<btn title=\"Edit\" class=\"btn btn-link btn-sm editthis\" onclick=\"EditData(' + dataRow.{table.IdentityColumn!.Database.Name.ToCamelCase()} + ');\"><span class=\"fa fa-edit fa-lg\"></span></a>';");
         result.AppendLine($"{Indentation3}}}");
         result.AppendLine($"{Indentation3}else if (actionType == 1) {{");
-        result.AppendLine($"{Indentation4}return '<btn title=\"Delete\" class=\"btn btn-link btn-sm deletethis\" onclick=\"DeleteData(' + dataRow.{table.IdentityColumn!.Name.ToCamelCase()} + ');\"><span class=\"fa fa-trash fa-lg\"></span></a>';");
+        result.AppendLine($"{Indentation4}return '<btn title=\"Delete\" class=\"btn btn-link btn-sm deletethis\" onclick=\"DeleteData(' + dataRow.{table.IdentityColumn!.Database.Name.ToCamelCase()} + ');\"><span class=\"fa fa-trash fa-lg\"></span></a>';");
         result.AppendLine($"{Indentation3}}}");
         result.AppendLine($"{Indentation2}}}");
         result.AppendLine();
@@ -988,27 +988,26 @@ public static class ExtensionsCode
         result.AppendLine($"{Indentation5}}}");
         result.AppendLine($"{Indentation4}],");
         result.AppendLine($"{Indentation4}\"columns\": [");
-        foreach (var column in table.Properties)
+        foreach (var property in table.Properties)
         {
-            if (column.Name == table.IdentityColumn!.Name)
+            if (property.Database.Name == table.IdentityColumn!.Database.Name)
             {
-                result.AppendLine($"{Indentation5}{{ \"data\": \"{column.Name.ToCamelCase()}\", \"autoWidth\": true }},");
+                result.AppendLine($"{Indentation5}{{ \"data\": \"{property.Database.Name.ToCamelCase()}\", \"autoWidth\": true }},");
             }
             else
             {
-                if (column.Name.EndsWith("_COMPANY") || column.Name.EndsWith("_ERP_CODE") || column.Name.EndsWith("_RECVERSION") || !column.Visible)
+                if (property.Database.Name.EndsWith("_COMPANY") || property.Database.Name.EndsWith("_ERP_CODE") || property.Database.Name.EndsWith("_RECVERSION") || !property.Visible)
                 { }
                 else
                 {
-                    if (column.IsNullable)
+                    if (property.Database.IsNullable)
                     {
-                        result.AppendLine($"{Indentation5}{{ \"data\": \"{column.Name.ToCamelCase()}\", \"autoWidth\": true, \"defaultContent\": \"\" }},");
+                        result.AppendLine($"{Indentation5}{{ \"data\": \"{property.Database.Name.ToCamelCase()}\", \"autoWidth\": true, \"defaultContent\": \"\" }},");
                     }
                     else
                     {
-                        result.AppendLine($"{Indentation5}{{ \"data\": \"{column.Name.ToCamelCase()}\", \"autoWidth\": true }},");
+                        result.AppendLine($"{Indentation5}{{ \"data\": \"{property.Database.Name.ToCamelCase()}\", \"autoWidth\": true }},");
                     }
-                    //result.AppendLine($"{Indentation5}{{ \"data\": \"{column.Name.ToCamelCase()}\", \"autoWidth\": true }},");
                 }
             }
         }
@@ -1119,15 +1118,15 @@ public static class ExtensionsCode
         result.AppendLine($"{Indentation2}<tr>");
         foreach (var property in table.Properties)
         {
-            if (property.Name == table.IdentityColumn!.Name)
+            if (property.Database.Name == table.IdentityColumn!.Database.Name)
             {
-                result.AppendLine($"{Indentation3}<th>{property.Name.ToPascalCase()}</th>");
+                result.AppendLine($"{Indentation3}<th>{property.Database.Name.ToPascalCase()}</th>");
             }
-            else if (property.Name.EndsWith("_COMPANY") || property.Name.EndsWith("_ERP_CODE") || property.Name.EndsWith("_RECVERSION") || !property.Visible)
+            else if (property.Database.Name.EndsWith("_COMPANY") || property.Database.Name.EndsWith("_ERP_CODE") || property.Database.Name.EndsWith("_RECVERSION") || !property.Visible)
             { }
             else
             {
-                result.AppendLine($"{Indentation3}<th>{property.Label ?? property.Name.ToPascalCase(" ")[3..]}<br /><input type=\"text\" placeholder=\"{property.Label ?? property.Name.ToPascalCase(" ")[3..]}\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th>");
+                result.AppendLine($"{Indentation3}<th>{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}<br /><input type=\"text\" placeholder=\"{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}\" class=\"fieldSearch\" onclick=\"event.stopPropagation();\" /></th>");
             }
         }
         result.AppendLine($"{Indentation3}@if ((bool)ViewData[ViewDataCostants.CanManage])");
@@ -1202,33 +1201,33 @@ public static class ExtensionsCode
         result.AppendLine($"{Indentation} class=\"needs-validation\"");
         result.AppendLine($"{Indentation} novalidate>");
         result.AppendLine($"{Indentation}<div class=\"modal-body\">");
-        var requiredColumns = table.Properties.Where(c => c.Name.EndsWith("_COMPANY") || c.Name.EndsWith("_ERP_CODE") || c.Name.EndsWith("_RECVERSION")).ToArray();
-        foreach (var column in requiredColumns)
+        var requiredColumns = table.Properties.Where(c => c.Database.Name.EndsWith("_COMPANY") || c.Database.Name.EndsWith("_ERP_CODE") || c.Database.Name.EndsWith("_RECVERSION")).ToArray();
+        foreach (var property in requiredColumns)
         {
-            result.AppendLine($"{Indentation}@Html.HiddenFor(model => model.{column.Name.ToPascalCase()})");
+            result.AppendLine($"{Indentation}@Html.HiddenFor(model => model.{property.Database.Name.ToPascalCase()})");
         }
-        foreach (var column in table.WritableColumns)
+        foreach (var property in table.WritableColumns)
         {
-            if (requiredColumns.Contains(column)) continue;
-            if (!column.Visible)
+            if (requiredColumns.Contains(property)) continue;
+            if (!property.Visible)
             {
-                result.AppendLine($"{Indentation}@Html.HiddenFor(model => model.{column.Name.ToPascalCase()})");
+                result.AppendLine($"{Indentation}@Html.HiddenFor(model => model.{property.Database.Name.ToPascalCase()})");
                 continue;
             }
 
-            if (!column.IsPrimaryKey)
+            if (!property.Database.IsPrimaryKey)
             {
-                if (column.VisibleInCreate)
+                if (property.VisibleInCreate)
                 {
-                    result.AppendLine($"{Indentation}<div class=\"form-group\" id=\"form{column.Name.ToPascalCase()}\">");
-                    result.AppendLine($"{Indentation2}<label for=\"{column.Name.ToPascalCase()}\">{column.Label ?? column.Name.ToPascalCase(" ")[3..]}</label>");
-                    result.Append($"{Indentation2}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Label ?? column.Name.ToPascalCase(" ")[3..]}\"");
-                    if (!column.IsNullable || column.Required)
+                    result.AppendLine($"{Indentation}<div class=\"form-group\" id=\"form{property.Database.Name.ToPascalCase()}\">");
+                    result.AppendLine($"{Indentation2}<label for=\"{property.Database.Name.ToPascalCase()}\">{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}</label>");
+                    result.Append($"{Indentation2}@Html.EditorFor(model => model.{property.Database.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}\"");
+                    if (!property.Database.IsNullable || property.Required)
                     {
                         result.Append(", required = \"required\"");
                         result.AppendLine(" } })");
                         result.AppendLine($"{Indentation2}<div class=\"invalid-feedback\">");
-                        result.AppendLine($"{Indentation3}<i class=\"fas fa-exclamation-triangle\"></i>&nbsp;&nbsp;Please enter {column.Label ?? column.Name.ToPascalCase(" ")[3..]}");
+                        result.AppendLine($"{Indentation3}<i class=\"fas fa-exclamation-triangle\"></i>&nbsp;&nbsp;Please enter {property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}");
                         result.AppendLine($"{Indentation2}</div>");
                     }
                     else
@@ -1241,19 +1240,19 @@ public static class ExtensionsCode
                 {
                     result.AppendLine($"{Indentation}@if ((bool)ViewData[ViewDataCostants.NewRecord])");
                     result.AppendLine($"{Indentation}{{");
-                    result.AppendLine($"{Indentation2}@Html.HiddenFor(model => model.{column.Name.ToPascalCase()})");
+                    result.AppendLine($"{Indentation2}@Html.HiddenFor(model => model.{property.Database.Name.ToPascalCase()})");
                     result.AppendLine($"{Indentation}}}");
                     result.AppendLine($"{Indentation}else");
                     result.AppendLine($"{Indentation}{{");
-                    result.AppendLine($"{Indentation2}<div class=\"form-group\" id=\"form{column.Name.ToPascalCase()}\">");
-                    result.AppendLine($"{Indentation2}<label for=\"{column.Name.ToPascalCase()}\">{column.Label ?? column.Name.ToPascalCase(" ")[3..]}</label>");
-                    result.Append($"{Indentation2}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Label ?? column.Name.ToPascalCase(" ")[3..]}\"");
-                    if (!column.IsNullable || column.Required)
+                    result.AppendLine($"{Indentation2}<div class=\"form-group\" id=\"form{property.Database.Name.ToPascalCase()}\">");
+                    result.AppendLine($"{Indentation2}<label for=\"{property.Database.Name.ToPascalCase()}\">{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}</label>");
+                    result.Append($"{Indentation2}@Html.EditorFor(model => model.{property.Database.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}\"");
+                    if (!property.Database.IsNullable || property.Required)
                     {
                         result.Append(", required = \"required\"");
                         result.AppendLine(" } })");
                         result.AppendLine($"{Indentation2}<div class=\"invalid-feedback\">");
-                        result.AppendLine($"{Indentation3}<i class=\"fas fa-exclamation-triangle\"></i>&nbsp;&nbsp;Please enter {column.Label ?? column.Name.ToPascalCase(" ")[3..]}");
+                        result.AppendLine($"{Indentation3}<i class=\"fas fa-exclamation-triangle\"></i>&nbsp;&nbsp;Please enter {property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}");
                         result.AppendLine($"{Indentation2}</div>");
                     }
                     else
@@ -1267,19 +1266,19 @@ public static class ExtensionsCode
             }
             else
             {
-                result.AppendLine($"{Indentation}<div class=\"form-group\" id=\"form{column.Name.ToPascalCase()}\">");
-                result.AppendLine($"{Indentation2}<label for=\"{column.Name.ToPascalCase()}\">{column.Label ?? column.Name.ToPascalCase(" ")[3..]}</label>");
+                result.AppendLine($"{Indentation}<div class=\"form-group\" id=\"form{property.Database.Name.ToPascalCase()}\">");
+                result.AppendLine($"{Indentation2}<label for=\"{property.Database.Name.ToPascalCase()}\">{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}</label>");
                 result.AppendLine($"{Indentation2}@if ((bool)ViewData[ViewDataCostants.NewRecord])");
                 result.AppendLine($"{Indentation2}{{");
-                result.AppendLine($"{Indentation3}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Label ?? column.Name.ToPascalCase(" ")[3..]}\", required = \"required\" }} }})");
+                result.AppendLine($"{Indentation3}@Html.EditorFor(model => model.{property.Database.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}\", required = \"required\" }} }})");
                 result.AppendLine($"{Indentation2}}}");
                 result.AppendLine($"{Indentation2}else");
                 result.AppendLine($"{Indentation2}{{");
-                result.AppendLine($"{Indentation3}@Html.HiddenFor(model => model.{column.Name.ToPascalCase()})");
-                result.AppendLine($"{Indentation3}@Html.EditorFor(model => model.{column.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{column.Label ?? column.Name.ToPascalCase(" ")[3..]}\", required = \"required\", disabled = \"disabled\", @readonly = \"readonly\" }} }})");
+                result.AppendLine($"{Indentation3}@Html.HiddenFor(model => model.{property.Database.Name.ToPascalCase()})");
+                result.AppendLine($"{Indentation3}@Html.EditorFor(model => model.{property.Database.Name.ToPascalCase()}, new {{ htmlAttributes = new {{ @class = \"form-control\", placeholder = \"{property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}\", required = \"required\", disabled = \"disabled\", @readonly = \"readonly\" }} }})");
                 result.AppendLine($"{Indentation2}}}");
                 result.AppendLine($"{Indentation2}<div class=\"invalid-feedback\">");
-                result.AppendLine($"{Indentation3}<i class=\"fas fa-exclamation-triangle\"></i>&nbsp;&nbsp;Please enter {column.Label ?? column.Name.ToPascalCase(" ")[3..]}");
+                result.AppendLine($"{Indentation3}<i class=\"fas fa-exclamation-triangle\"></i>&nbsp;&nbsp;Please enter {property.Label ?? property.Database.Name.ToPascalCase(" ")[3..]}");
                 result.AppendLine($"{Indentation2}</div>");
                 result.AppendLine($"{Indentation}</div>");
             }
@@ -1324,8 +1323,8 @@ public static class ExtensionsCode
         var result = new StringBuilder();
         foreach (var property in model.Properties)
         {
-            result.AppendLine($"{indentation}[Column(\"{property.Name}\")]");
-            result.AppendLine($"{indentation}public {property.GetCodeDataType()} {property.Name.ToPascalCase()} {{ get; set; }}");
+            result.AppendLine($"{indentation}[Column(\"{property.Database.Name}\")]");
+            result.AppendLine($"{indentation}public {property.Database.GetCodeDataType()} {property.Database.Name.ToPascalCase()} {{ get; set; }}");
             result.AppendLine();
         }
 

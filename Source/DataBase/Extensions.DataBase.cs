@@ -204,6 +204,10 @@ public static class ExtensionsDataBase
 
         var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => $"{c.Name} [{c.Name.ToPascalCase()}]"));
         var where = "";
+        if(table.AdditionalFilter != null)
+        {
+            where += $"{table.AdditionalFilter}";
+        }
         foreach (var column in table.Columns)
         {
             if (where.Length > 0)
@@ -215,6 +219,12 @@ public static class ExtensionsDataBase
             else
             {
                 where += $"(@{column.Name} IS NULL OR {column.Name} = @{column.Name})";
+            }
+            if(column.AdditionalFilter != null)
+            {
+                if (where.Length > 0)
+                    where += $" AND ";
+                where += $"{column.AdditionalFilter}";
             }
         }
         //if (requiredColumns != null && requiredColumns.Length > 0)
@@ -238,6 +248,10 @@ public static class ExtensionsDataBase
 
         var where = $"{table.IdentityColumn.Name} = @{table.IdentityColumn.Name}";
         var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => $"{c.Name} [{c.Name.ToPascalCase()}]"));
+        if (table.AdditionalFilter != null)
+        {
+            where += $" AND {table.AdditionalFilter}";
+        }
         return $@"{indentation}SELECT {columns}
 {indentation}FROM {table.Name}
 {indentation}WHERE {where}";
@@ -249,6 +263,14 @@ public static class ExtensionsDataBase
 
         var where = string.Join($"\n{indentation}  AND ", table.PrimaryKeyColumns.Select(c => $"{c.Name} = @{c.Name}"));
         var columns = string.Join($",\n{indentation}   ", table.Columns.Select(c => $"{c.Name} [{c.Name.ToPascalCase()}]"));
+        if(table.AdditionalFilter != null)
+        {
+            if(where.Length > 0)
+            {
+                where += $"\n{indentation}  AND ";
+            }
+            where += $"{table.AdditionalFilter}";
+        }
         return $@"{indentation}SELECT {columns}
 {indentation}FROM {table.Name}
 {indentation}WHERE {where}";

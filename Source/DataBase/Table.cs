@@ -10,6 +10,8 @@ public class Table
     public string Name { get; set; }
     public List<Column> Columns { get; set; }
 
+    public string? AdditionalFilter { get; set; }
+
     public List<Table> Childs { get; set; }
 
     [JsonIgnore]

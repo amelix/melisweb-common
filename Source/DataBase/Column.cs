@@ -19,6 +19,8 @@ public class Column
     public int Index { get; set; }
     public bool IsIdentity { get; set; }
 
+    public string? AdditionalFilter { get; set; }
+
     public string GetDataType()
     {
         if (Type == "varchar" || Type == "char")
